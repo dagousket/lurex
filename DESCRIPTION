@@ -1,0 +1,18 @@
+Package: lurex
+Title: Learn to Use Regular EXpression
+Version: 0.0.0.9000
+Authors@R: person("Swann", "Floc'hlay", email = 'swann@thinkr.fr', role = c('cre', 'aut'))
+Description: A simple app to help build simple regex.
+License: MIT + file LICENSE
+Imports:
+    config (>= 0.3.2),
+    golem (>= 0.4.1),
+    shiny (>= 1.8.0)
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.3.1
+Suggests:
+    spelling,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+Language: en-US
