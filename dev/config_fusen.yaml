@@ -1,8 +1,12 @@
 flat_regex_brick.Rmd:
   path: dev/flat_regex_brick.Rmd
   state: active
-  R: R/build_a_regex_brick.R
-  tests: tests/testthat/test-build_a_regex_brick.R
+  R:
+  - R/build_a_regex_brick.R
+  - R/validate_regex.R
+  tests:
+  - tests/testthat/test-build_a_regex_brick.R
+  - tests/testthat/test-validate_regex.R
   vignettes: []
   inflate:
     flat_file: dev/flat_regex_brick.Rmd

@@ -112,6 +112,7 @@ mod_regex_brick_ui <- function(id) {
 
 #' regex_brick Server Functions
 #'
+#' @importFrom shinyWidgets show_toast
 #' @noRd
 mod_regex_brick_server <- function(id, r) {
   moduleServer(id, function(input, output, session) {
@@ -143,6 +144,13 @@ mod_regex_brick_server <- function(id, r) {
           custom_occurrence = input$occurence_slider
         )
         r$regex_list <- append(r$regex_list, new_brick)
+        show_toast(
+          title = "new regex",
+          text = new_brick,
+          type = "success",
+          timer = 3000,
+          width = "400px"
+        )
       }
     )
   })
