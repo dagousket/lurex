@@ -8,27 +8,27 @@
 #'
 #' @importFrom shiny NS tagList
 mod_invent_brick_ui <- function(id) {
-  ns <- NS(id)
-  tagList(
-    h3("Fetch some matches"),
-    p(),
-    p("A textOutput here"),
-    p(),
-    actionButton(
-      inputId = "fetch_match",
-      label = "give me more !",
-      icon = icon("circle-plus")
-    )
-  )
+	ns <- NS(id)
+	tagList(
+		h3("Fetch some matches"),
+		p(),
+		p("A textOutput here"),
+		p(),
+		actionButton(
+			inputId = "fetch_match",
+			label = "give me more !",
+			icon = icon("circle-plus")
+		)
+	)
 }
 
 #' invent_brick Server Functions
 #'
 #' @noRd
 mod_invent_brick_server <- function(id) {
-  moduleServer(id, function(input, output, session) {
-    ns <- session$ns
-  })
+	moduleServer(id, function(input, output, session) {
+		ns <- session$ns
+	})
 }
 
 ## To be copied in the UI

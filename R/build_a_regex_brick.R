@@ -13,84 +13,85 @@
 #'
 #' @examples
 #' build_a_regex_brick(
-#'   type = "ordered",
-#'   occurence = "custom",
-#'   custom_motif = "hello",
-#'   custom_occurrence = c(1, 5)
+#' 	type = "ordered",
+#' 	occurence = "custom",
+#' 	custom_motif = "hello",
+#' 	custom_occurrence = c(1, 5)
 #' )
 #'
 #' build_a_regex_brick(
-#'   type = "unordered",
-#'   occurence = "anytime",
-#'   custom_motif = "hello",
-#'   content = c("lowercase letters", "uppercase letters", "custom")
+#' 	type = "unordered",
+#' 	occurence = "anytime",
+#' 	custom_motif = "hello",
+#' 	content = c("lowercase letters", "uppercase letters", "custom")
 #' )
 build_a_regex_brick <- function(
-    type = c("ordered", "unordered"),
-    content = c("wildcard", "lowercase letters", "uppercase letters", "digits", "punctuation", "space and tab", "custom"),
-    occurence = c("once", "at least once", "anytime", "custom"),
-    custom_motif = NULL,
-    custom_occurrence = NULL) {
-  # check input
-  type <- match.arg(type)
-  content <- match.arg(content, several.ok = TRUE)
-  occurence <- match.arg(occurence)
+	type = c("ordered", "unordered"),
+	content = c("wildcard", "lowercase letters", "uppercase letters", "digits", "punctuation", "space and tab", "custom"),
+	occurence = c("once", "at least once", "anytime", "custom"),
+	custom_motif = NULL,
+	custom_occurrence = NULL
+				) {
+	# check input
+	type <- match.arg(type)
+	content <- match.arg(content, several.ok = TRUE)
+	occurence <- match.arg(occurence)
 
-  # check cusom
-  if ("custom" %in% occurence && is.null(custom_occurrence)) {
-    stop("custom occurrence selected but no value given")
-  }
-  if ("custom" %in% content && is.null(custom_motif)) {
-    stop("custom motif selected but no value given")
-  }
+	# check cusom
+	if ("custom" %in% occurence && is.null(custom_occurrence)) {
+		stop("custom occurrence selected but no value given")
+	}
+	if ("custom" %in% content && is.null(custom_motif)) {
+		stop("custom motif selected but no value given")
+	}
 
-  # set occurrence
-  if (occurence != "custom") {
-    occurrence_equivalence <- list(
-      "once" = "",
-      "at least once" = "+",
-      "anytime" = "*"
-    )
-    freq <- occurrence_equivalence[occurence]
-  } else {
-    freq <- sprintf("{%i,%i}", custom_occurrence[1], custom_occurrence[2])
-  }
+	# set occurrence
+	if (occurence != "custom") {
+		occurrence_equivalence <- list(
+			"once" = "",
+			"at least once" = "+",
+			"anytime" = "*"
+		)
+		freq <- occurrence_equivalence[occurence]
+	} else {
+		freq <- sprintf("{%i,%i}", custom_occurrence[1], custom_occurrence[2])
+	}
 
-  # set group
-  if (type == "ordered") {
-    group_bracket <- c("(", ")")
+	# set group
+	if (type == "ordered") {
+		group_bracket <- c("(", ")")
 
-    # we only allow custom motif for ordered group for now
-    text <- sprintf(
-      "%s%s%s%s",
-      group_bracket[1],
-      custom_motif,
-      group_bracket[2],
-      freq
-    )
-    return(text)
-  } else if (type == "unordered") {
-    group_bracket <- c("[", "]")
-  }
+		# we only allow custom motif for ordered group for now
+		text <- sprintf(
+			"%s%s%s%s",
+			group_bracket[1],
+			custom_motif,
+			group_bracket[2],
+			freq
+		)
+		return(text)
+	} else if (type == "unordered") {
+		group_bracket <- c("[", "]")
+	}
 
-  # set content
-  regex_equivalance <- c(
-    "wildcard" = ".",
-    "lowercase letters" = "[:lower:]",
-    "uppercase letters" = "[:upper:]",
-    "digits" = "[:digit:]",
-    "punctuation" = "[:punct:]",
-    "space and tab" = "[:blank:]",
-    "custom" = custom_motif
-  )
+	# set content
+	regex_equivalance <- c(
+		"wildcard" = ".",
+		"lowercase letters" = "[:lower:]",
+		"uppercase letters" = "[:upper:]",
+		"digits" = "[:digit:]",
+		"punctuation" = "[:punct:]",
+		"space and tab" = "[:blank:]",
+		"custom" = custom_motif
+	)
 
-  text <- sprintf(
-    "%s%s%s%s",
-    group_bracket[1],
-    paste(regex_equivalance[content], collapse = ""),
-    group_bracket[2],
-    freq
-  )
+	text <- sprintf(
+		"%s%s%s%s",
+		group_bracket[1],
+		paste(regex_equivalance[content], collapse = ""),
+		group_bracket[2],
+		freq
+	)
 
-  return(text)
+	return(text)
 }
