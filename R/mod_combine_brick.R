@@ -73,9 +73,13 @@ mod_combine_brick_ui <- function(id) {
 #' combine_brick Server Functions
 #'
 #' @noRd
-mod_combine_brick_server <- function(id) {
+mod_combine_brick_server <- function(id, r) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
+
+    observeEvent(r$regex_list, {
+
+    })
   })
 }
 

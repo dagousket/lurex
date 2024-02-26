@@ -7,7 +7,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
-#' @importFrom shinyWidgets pickerInput
+#' @importFrom shinyWidgets pickerInput prettySwitch
 #' @importFrom bslib tooltip
 #' @importFrom bsicons bs_icon
 mod_regex_brick_ui <- function(id) {
@@ -16,7 +16,7 @@ mod_regex_brick_ui <- function(id) {
     h3("Construct a regex brick"),
     p(),
     selectInput(
-      inputId = "motif_type",
+      inputId = ns("motif_type"),
       label = span(
         "type of text",
         tooltip(
@@ -29,7 +29,7 @@ mod_regex_brick_ui <- function(id) {
     ),
     p(),
     selectInput(
-      inputId = "content_type",
+      inputId = ns("content_type"),
       label = span(
         "type of content",
         tooltip(
@@ -38,11 +38,20 @@ mod_regex_brick_ui <- function(id) {
           placement = "bottom"
         )
       ),
-      choices = c("wildcard", "character", "digits", "punctuations", "custom")
+      choices = c(
+        "wildcard",
+        "lowercase letters",
+        "uppercase letters",
+        "digits",
+        "punctuation",
+        "space and tab",
+        "custom"
+      ),
+      multiple = TRUE
     ),
     p(),
     textInput(
-      inputId = "custom_text",
+      inputId = ns("custom_motif"),
       label = span(
         "custom motif",
         tooltip(
@@ -55,7 +64,7 @@ mod_regex_brick_ui <- function(id) {
     ),
     p(),
     selectInput(
-      inputId = "occurrence",
+      inputId = ns("occurrence"),
       label = span(
         "occurence",
         tooltip(
@@ -64,11 +73,11 @@ mod_regex_brick_ui <- function(id) {
           placement = "bottom"
         )
       ),
-      choices = c("once", "at least once", "anytime", "custom range")
+      choices = c("once", "at least once", "anytime", "custom")
     ),
     p(),
     sliderInput(
-      inputId = "occurence_slider",
+      inputId = ns("occurence_slider"),
       label = "custom range",
       min = 0,
       max = 10,
@@ -78,8 +87,23 @@ mod_regex_brick_ui <- function(id) {
       round = TRUE
     ),
     p(),
+    prettySwitch(
+      inputId = "escape_special",
+      label = span(
+        "Escape special character",
+        tooltip(
+          bs_icon("info-circle"),
+          "some info here",
+          placement = "bottom"
+        )
+      ),
+      status = "info",
+      value = TRUE,
+      fill = TRUE
+    ),
+    p(),
     actionButton(
-      inputId = "make_brick",
+      inputId = ns("make_brick"),
       label = "create",
       icon = icon("circle-plus")
     )
@@ -89,9 +113,38 @@ mod_regex_brick_ui <- function(id) {
 #' regex_brick Server Functions
 #'
 #' @noRd
-mod_regex_brick_server <- function(id) {
+mod_regex_brick_server <- function(id, r) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
+
+    golem::invoke_js("hideid", ns("custom_motif"))
+
+    # hiding / showing custom entries
+    observeEvent(
+      input$content_type,
+      {
+        if ("custom" %in% input$content_type) {
+          golem::invoke_js("hideid", ns("custom_motif"))
+        } else {
+          golem::invoke_js("showid", ns("custom_motif"))
+        }
+      }
+    )
+
+    # making a brick
+    observeEvent(
+      input$make_brick,
+      {
+        new_brick <- build_a_regex_brick(
+          type = input$motif_type,
+          content = input$content_type,
+          occurence = input$occurrence,
+          custom_motif = input$custom_motif,
+          custom_occurrence = input$occurence_slider
+        )
+        r$regex_list <- append(r$regex_list, new_brick)
+      }
+    )
   })
 }
 

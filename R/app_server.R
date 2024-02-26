@@ -5,8 +5,14 @@
 #' @import shiny
 #' @noRd
 app_server <- function(input, output, session) {
-	# Your application server logic
-	mod_regex_brick_server("regex_brick_1")
-	mod_combine_brick_server("combine_brick_1")
-	mod_invent_brick_server("invent_brick_1")
+  # Your application server logic
+
+  # the flying regex list
+  r <- reactiveValues(
+    regex_list = list()
+  )
+
+  mod_regex_brick_server("regex_brick_1", r = r)
+  mod_combine_brick_server("combine_brick_1", r = r)
+  mod_invent_brick_server("invent_brick_1")
 }

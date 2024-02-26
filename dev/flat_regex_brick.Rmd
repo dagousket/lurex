@@ -1,0 +1,175 @@
+---
+title: "Build bricks"
+output: html_document
+editor_options:
+  chunk_output_type: console
+---
+
+```{r development, include=FALSE}
+library(testthat)
+```
+
+```{r development-load}
+# Load already included functions if relevant
+pkgload::load_all(export_all = FALSE)
+```
+
+## Build a regex brick
+
+```{r function-build_a_regex_brick}
+#' Build a regex brick
+#'
+#' @param type The type of regex group. Can be "ordered" or "unordered".
+#' @param content The content of the regex group. Can be "wildcard", "lowercase letters", "uppercase letters", "digits", "punctuation", "space and tab", or "custom".
+#' @param occurence The occurrence of the regex group. Can be "once", "at least once", "anytime", or "custom".
+#' @param custom_motif The custom motif to be used in the regex group. Only applicable if "custom" is selected for the content parameter.
+#' @param custom_occurrence The custom occurrence to be used in the regex group. Only applicable if "custom" is selected for the occurrence parameter.
+#'
+#' @return A character string representing the built regex.
+#' @export
+#'
+#' @examples
+build_a_regex_brick <- function(
+    type = c("ordered", "unordered"),
+    content = c("wildcard", "lowercase letters", "uppercase letters", "digits", "punctuation", "space and tab", "custom"),
+    occurence = c("once", "at least once", "anytime", "custom"),
+    custom_motif = NULL,
+    custom_occurrence = NULL) {
+  # check input
+  type <- match.arg(type)
+  content <- match.arg(content, several.ok = TRUE)
+  occurence <- match.arg(occurence)
+
+  # check cusom
+  if ("custom" %in% occurence && is.null(custom_occurrence)) {
+    stop("custom occurrence selected but no value given")
+  }
+  if ("custom" %in% content && is.null(custom_motif)) {
+    stop("custom motif selected but no value given")
+  }
+
+  # set occurrence
+  if (occurence != "custom") {
+    occurrence_equivalence <- list(
+      "once" = "",
+      "at least once" = "+",
+      "anytime" = "*"
+    )
+    freq <- occurrence_equivalence[occurence]
+  } else {
+    freq <- sprintf("{%i,%i}", custom_occurrence[1], custom_occurrence[2])
+  }
+
+  # set group
+  if (type == "ordered") {
+    group_bracket <- c("(", ")")
+
+    # we only allow custom motif for ordered group for now
+    text <- sprintf(
+      "%s%s%s%s",
+      group_bracket[1],
+      custom_motif,
+      group_bracket[2],
+      freq
+    )
+    return(text)
+  } else if (type == "unordered") {
+    group_bracket <- c("[", "]")
+  }
+
+  # set content
+  regex_equivalance <- c(
+    "wildcard" = ".",
+    "lowercase letters" = "[:lower:]",
+    "uppercase letters" = "[:upper:]",
+    "digits" = "[:digit:]",
+    "punctuation" = "[:punct:]",
+    "space and tab" = "[:blank:]",
+    "custom" = custom_motif
+  )
+
+  text <- sprintf(
+    "%s%s%s%s",
+    group_bracket[1],
+    paste(regex_equivalance[content], collapse = ""),
+    group_bracket[2],
+    freq
+  )
+
+  return(text)
+}
+```
+
+```{r examples-build_a_regex_brick}
+build_a_regex_brick(
+  type = "ordered",
+  occurence = "custom",
+  custom_motif = "hello",
+  custom_occurrence = c(1, 5)
+)
+
+build_a_regex_brick(
+  type = "unordered",
+  occurence = "anytime",
+  custom_motif = "hello",
+  content = c("lowercase letters", "uppercase letters", "custom")
+)
+```
+
+```{r tests-build_a_regex_brick}
+test_that("function returns error for unexpected input", {
+  expect_error({
+    build_a_regex_brick(type = "unknown")
+  })
+  expect_error({
+    build_a_regex_brick(content = "unknown")
+  })
+  expect_error({
+    build_a_regex_brick(occurence = "unknown")
+  })
+  expect_error(
+    {
+      build_a_regex_brick(occurence = "custom")
+    },
+    regexp = "custom occurrence selected but no value given"
+  )
+  expect_error(
+    {
+      build_a_regex_brick(content = "custom")
+    },
+    regexp = "custom motif selected but no value given"
+  )
+})
+
+test_that("function gives expected regex for ordered type", {
+  regex_output <- build_a_regex_brick(
+    type = "ordered",
+    occurence = "custom",
+    custom_motif = "hello",
+    custom_occurrence = c(1, 5)
+  )
+  expect_equal(object = regex_output, expected = "(hello){1,5}")
+})
+
+test_that("function gives expected regex for unordered type", {
+  regex_output <- build_a_regex_brick(
+    type = "unordered",
+    occurence = "anytime",
+    custom_motif = "hello",
+    content = c("lowercase letters", "uppercase letters", "custom")
+  )
+  expect_equal(object = regex_output, expected = "[[:lower:][:upper:]hello]*")
+})
+```
+
+
+```{r development-inflate, eval=FALSE}
+# Keep eval=FALSE to avoid infinite loop in case you hit the knit button
+# Execute in the console directly
+fusen::inflate(
+  flat_file = "dev/flat_regex_brick.Rmd",
+  vignette_name = NA,
+  check = FALSE,
+  open_vignette = FALSE
+)
+```
