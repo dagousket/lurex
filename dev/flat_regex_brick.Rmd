@@ -32,7 +32,7 @@ pkgload::load_all(export_all = FALSE)
 build_a_regex_brick <- function(
     type = c("ordered", "unordered"),
     content = c("wildcard", "lowercase letters", "uppercase letters", "digits", "punctuation", "space and tab", "custom"),
-    occurence = c("once", "at least once", "anytime", "custom"),
+    occurrence = c("once", "at least once", "anytime", "custom"),
     custom_motif = NULL,
     custom_occurrence = NULL) {
   # check input
@@ -55,6 +55,7 @@ build_a_regex_brick <- function(
       "at least once" = "+",
       "anytime" = "*"
     )
+    custom_occurrence <- NULL
     freq <- occurrence_equivalence[occurence]
   } else {
     freq <- sprintf("{%i,%i}", custom_occurrence[1], custom_occurrence[2])
@@ -72,31 +73,41 @@ build_a_regex_brick <- function(
       group_bracket[2],
       freq
     )
-    return(text)
+    # remove unused parameters
+    content <- NULL
   } else if (type == "unordered") {
     group_bracket <- c("[", "]")
+
+    # set content
+    regex_equivalance <- c(
+      "wildcard" = ".",
+      "lowercase letters" = "[:lower:]",
+      "uppercase letters" = "[:upper:]",
+      "digits" = "[:digit:]",
+      "punctuation" = "[:punct:]",
+      "space and tab" = "[:blank:]",
+      "custom" = custom_motif
+    )
+
+    text <- sprintf(
+      "%s%s%s%s",
+      group_bracket[1],
+      paste(regex_equivalance[content], collapse = ""),
+      group_bracket[2],
+      freq
+    )
   }
 
-  # set content
-  regex_equivalance <- c(
-    "wildcard" = ".",
-    "lowercase letters" = "[:lower:]",
-    "uppercase letters" = "[:upper:]",
-    "digits" = "[:digit:]",
-    "punctuation" = "[:punct:]",
-    "space and tab" = "[:blank:]",
-    "custom" = custom_motif
+  new_brick <- list(
+    brick = text,
+    type = type,
+    content = content,
+    occurrence = occurence,
+    custom_motif = custom_motif,
+    custom_occurrence = custom_occurrence
   )
 
-  text <- sprintf(
-    "%s%s%s%s",
-    group_bracket[1],
-    paste(regex_equivalance[content], collapse = ""),
-    group_bracket[2],
-    freq
-  )
-
-  return(text)
+  return(new_brick)
 }
 ```
 
@@ -148,7 +159,7 @@ test_that("function gives expected regex for ordered type", {
     custom_motif = "hello",
     custom_occurrence = c(1, 5)
   )
-  expect_equal(object = regex_output, expected = "(hello){1,5}")
+  expect_equal(object = regex_output$brick, expected = "(hello){1,5}")
 })
 
 test_that("function gives expected regex for unordered type", {
@@ -158,12 +169,11 @@ test_that("function gives expected regex for unordered type", {
     custom_motif = "hello",
     content = c("lowercase letters", "uppercase letters", "custom")
   )
-  expect_equal(object = regex_output, expected = "[[:lower:][:upper:]hello]*")
+  expect_equal(object = regex_output$brick, expected = "[[:lower:][:upper:]hello]*")
 })
 ```
 
 ## Validate a regex brick
-
 
 ```{r function-validate_regex}
 #' Validate a regex combination

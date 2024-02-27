@@ -12,116 +12,144 @@
 #' @importFrom bslib tooltip
 #' @importFrom bsicons bs_icon
 mod_combine_brick_ui <- function(id) {
-	ns <- NS(id)
-	tagList(
-		h3("Order your motifs"),
-		uiOutput(ns("sortable_1")),
-		fluidRow(
-			column(
-				4,
-				uiOutput(ns("sortable_2"))
-			),
-			column(
-				8,
-				uiOutput(ns("sortable_3"))
-			)
-		),
-		actionButton(
-			inputId = ns("clear_bin"),
-			label = "empty bin",
-			icon = icon("trash")
-		)
-	)
+  ns <- NS(id)
+  tagList(
+    h3("Order your motifs"),
+    uiOutput(ns("sortable_1")),
+    fluidRow(
+      column(
+        4,
+        p("bin"),
+        uiOutput(ns("sortable_2")),
+        actionButton(
+          inputId = ns("clear_bin"),
+          label = "empty bin",
+          icon = icon("trash")
+        )
+      ),
+      column(
+        8,
+        span("helpers", tooltip(
+          bs_icon("info-circle"),
+          "hover on tile to see definition",
+          placement = "bottom"
+        )),
+        uiOutput(ns("sortable_3"))
+      )
+    )
+  )
 }
 
 #' combine_brick Server Functions
 #'
+#' @importFrom purrr map_chr
+#'
 #' @noRd
 mod_combine_brick_server <- function(id, r) {
-	moduleServer(id, function(input, output, session) {
-		ns <- session$ns
+  moduleServer(id, function(input, output, session) {
+    ns <- session$ns
 
-		# the main bucket
-		observeEvent(r$regex_list, {
-			output$sortable_1 <- renderUI({
-				bucket_list(
-					header = "plop",
-					group_name = "brick_bucket",
-					orientation = "vertical",
-					add_rank_list(
-						input_id = ns("ranked_bricks"),
-						text = "",
-						labels = r$regex_list,
-						orientation = "horizontal"
-					)
-				)
-			})
-		})
+    # the main bucket
+    observeEvent(r$regex_list, {
+      # extract only string from list
+      brick_labels <- setNames(
+        as.list(map_chr(r$regex_list, "brick")),
+        names(r$regex_list)
+      )
 
-		observeEvent(input$ranked_bricks, {
-			# check validity of the regex
-			r$is_regex_valid <- validate_regex(input$ranked_bricks)
-			# save regex
-			r$regex_combined <- input$ranked_bricks
-		})
+      output$sortable_1 <- renderUI({
+        bucket_list(
+          header = NULL,
+          group_name = "brick_bucket",
+          orientation = "vertical",
+          add_rank_list(
+            input_id = ns("ranked_bricks"),
+            text = NULL,
+            labels = brick_labels,
+            orientation = "horizontal"
+          )
+        )
+      })
+    })
 
-		# the bin bucket
-		observeEvent(
-			input$clear_bin,
-			{
-				output$sortable_2 <- renderUI({
-					bucket_list(
-						header = "bin",
-						group_name = "brick_bucket",
-						add_rank_list(
-							input_id = ns("dumped_bricks"),
-							text = ""
-						)
-					)
-				})
-			},
-			ignoreNULL = FALSE
-		)
+    observeEvent(input$ranked_bricks, {
+      # check validity of the regex
+      r$is_regex_valid <- validate_regex(input$ranked_bricks)
+      # save regex
+      r$regex_combined <- input$ranked_bricks
+    })
 
-		# the helper bucket
-		observeEvent(
-			input$helper_bricks,
-			{
-				# no more start/end if already in use
-				bricks_list <- list(
-					"or" = tags$div(
-						"|",
-						tooltip(bs_icon("info-circle"), "or : match the motif on the left or the motif on the right", placement = "bottom")
-					),
-					"start" = tags$div(
-						"^",
-						tooltip(bs_icon("info-circle"), "start : no text before this", placement = "bottom")
-					),
-					"end" = tags$div(
-						"$",
-						tooltip(bs_icon("info-circle"), "stop : no text after this", placement = "bottom")
-					)
-				)
+    # the bin bucket
+    observeEvent(
+      input$clear_bin,
+      {
+        # drop items from list
+        dropped_items <- names(r$regex_list) %in% input$dumped_bricks
+        r$regex_list <- r$regex_list[!dropped_items]
 
-				unused <- c("start", "end")[!c("start", "end") %in% input$ranked_bricks]
-				bricks_list <- bricks_list[c(unused, "or")]
+        # reset bin values
+        output$sortable_2 <- renderUI({
+          bucket_list(
+            header = NULL,
+            group_name = "brick_bucket",
+            add_rank_list(
+              input_id = ns("dumped_bricks"),
+              text = NULL
+            )
+          )
+        })
+      },
+      ignoreNULL = FALSE
+    )
 
-				output$sortable_3 <- renderUI({
-					bucket_list(
-						header = "helpers",
-						group_name = "brick_bucket",
-						add_rank_list(
-							input_id = ns("helper_bricks"),
-							text = "",
-							labels = bricks_list,
-							orientation = "horizontal"
-						)
-					)
-				})
-			},
-			ignoreNULL = FALSE
-		)
-	})
+    # the helper bucket
+    observeEvent(
+      c(input$helper_bricks, input$clear_bin),
+      {
+        # no more start/end if already in use
+        bricks_list <- list(
+          "or" = tags$div(
+            tooltip(
+              "|",
+              "or : match the motif on the left or the motif on the right",
+              placement = "bottom"
+            )
+          ),
+          "start" = tags$div(
+            tooltip(
+              "^",
+              "start : no text before this",
+              placement = "bottom"
+            )
+          ),
+          "end" = tags$div(
+            tooltip(
+              "$",
+              "stop : no text after this",
+              placement = "bottom"
+            )
+          )
+        )
+
+        unused <- c("start", "end")[!c("start", "end") %in% input$ranked_bricks]
+        bricks_list <- bricks_list[c(unused, "or")]
+
+        output$sortable_3 <- renderUI({
+          bucket_list(
+            header = NULL,
+            group_name = "brick_bucket",
+            add_rank_list(
+              input_id = ns("helper_bricks"),
+              text = NULL,
+              labels = bricks_list,
+              orientation = "horizontal"
+            )
+          )
+        })
+      },
+      ignoreNULL = FALSE
+    )
+  })
 }
 
 ## To be copied in the UI
