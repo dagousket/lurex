@@ -1,0 +1,101 @@
+---
+title: "Generate word"
+output: html_document
+editor_options:
+  chunk_output_type: console
+---
+
+```{r development, include=FALSE}
+library(testthat)
+```
+
+```{r development-load}
+# Load already included functions if relevant
+pkgload::load_all(export_all = FALSE)
+```
+
+## Generate a word from a brick
+
+```{r function-generate_from_brick}
+#' Generate a word from a regex brick
+#'
+#' @param brick list. A list of the regex specifics
+#' @param use_scrabble logical. Should the regex try to match a real word
+#' @param maxword integer. Maximum number of random word to return
+#' @param maxfreq integer. Boundary when no maximum occurrence is specified
+#'
+#' @importFrom purrr map_chr
+#'
+#' @return wordlist. A character string matching the regex.
+#' @export
+#'
+#' @examples
+generate_from_brick <- function(
+    brick,
+    use_scrabble = TRUE,
+    maxword = 10,
+    maxfreq = 2) {
+  # verify brick list
+  brick_items <- c("brick", "type", "content", "occurrence", "custom_motif", "custom_occurrence")
+  if (!all(brick_items %in% names(brick))) {
+    stop("brick input list does not have all required items")
+  }
+
+  if (brick$type == "ordered") {
+    # only custom motif is allowed here at the moment
+    if (use_scrabble) {
+      scrabble_match <- search_in_scrabble()
+    }
+
+    # repeat motif accoring to occurrence
+    occurrence_equivalence <- list(
+      "once" = 1,
+      "at least once" = 1:maxfreq,
+      "anytime" = 0:maxfreq,
+      "custom" = brick$custom_occurrence[1]:brick$custom_occurrence[2]
+    )
+    motif_reps <- occurrence_equivalence[[brick$occurrence]]
+
+    if (length(motif_reps) > maxword) {
+      motif_reps <- sample(motif_reps, size = maxword, replace = FALSE)
+    }
+    wordlist <- map_chr(motif_reps, \(x){
+      paste(rep(brick$custom_motif, x), collapse = "")
+    })
+
+    return(wordlist)
+  } else if (brick$type == "unordered") {
+    # search in scrabble (lower/upper case ?)
+
+    # generate from sampling
+  }
+}
+
+
+#' Search in scrabble
+#' @noRd
+search_in_scrabble <- function() {
+
+}
+```
+
+```{r examples-generate_from_brick}
+
+```
+
+```{r tests-generate_from_brick}
+test_that("function returns error for unexpected input", {
+
+})
+```
+
+```{r development-inflate, eval=FALSE}
+# Keep eval=FALSE to avoid infinite loop in case you hit the knit button
+# Execute in the console directly
+fusen::inflate(
+  flat_file = "dev/flat_word_generator.Rmd",
+  vignette_name = NA,
+  check = FALSE,
+  open_vignette = FALSE
+)
+```

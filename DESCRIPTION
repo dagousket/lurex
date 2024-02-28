@@ -11,9 +11,12 @@ Imports:
     config (>= 0.3.2),
     golem (>= 0.4.1),
     htmltools,
+    purrr,
     shiny (>= 1.8.0),
     shinyWidgets,
-    sortable
+    sortable,
+    stats,
+    stringr
 Suggests:
     spelling,
     testthat (>= 3.0.0)

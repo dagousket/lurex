@@ -8,21 +8,30 @@ build_a_regex_brick(
   type = c("ordered", "unordered"),
   content = c("wildcard", "lowercase letters", "uppercase letters", "digits",
     "punctuation", "space and tab", "custom"),
-  occurence = c("once", "at least once", "anytime", "custom"),
+  occurrence = c("once", "at least once", "anytime", "custom"),
   custom_motif = NULL,
-  custom_occurrence = NULL
+  custom_occurrence = NULL,
+  escape = TRUE
 )
 }
 \arguments{
-\item{type}{The type of regex group. Can be "ordered" or "unordered".}
+\item{type}{character. The type of regex group.
+Can be "ordered" or "unordered".}
 
-\item{content}{The content of the regex group. Can be "wildcard", "lowercase letters", "uppercase letters", "digits", "punctuation", "space and tab", or "custom".}
+\item{content}{character. The content of the regex group.
+Can be "wildcard", "lowercase letters", "uppercase letters", "digits",
+"punctuation", "space and tab", or "custom".}
 
-\item{occurence}{The occurrence of the regex group. Can be "once", "at least once", "anytime", or "custom".}
+\item{occurrence}{character. The occurrence of the regex group.
+Can be "once", "at least once", "anytime", or "custom".}
 
-\item{custom_motif}{The custom motif to be used in the regex group. Only applicable if "custom" is selected for the content parameter.}
+\item{custom_motif}{character. The custom motif to be used in a regex group.
+Only applicable if "custom" is selected for the content parameter.}
 
-\item{custom_occurrence}{The custom occurrence to be used in the regex group. Only applicable if "custom" is selected for the occurrence parameter.}
+\item{custom_occurrence}{integer. The occurrence to be used in a regex group.
+Only applicable if "custom" is selected for the occurrence parameter.}
+
+\item{escape}{logical. Should special characters in custom motif be escaped.}
 }
 \value{
 A character string representing the built regex.
@@ -33,15 +42,15 @@ Build a regex brick
 \examples{
 build_a_regex_brick(
   type = "ordered",
-  occurence = "custom",
-  custom_motif = "hello",
+  occurrence = "custom",
+  custom_motif = "hello$",
   custom_occurrence = c(1, 5)
 )
 
 build_a_regex_brick(
   type = "unordered",
-  occurence = "anytime",
-  custom_motif = "hello",
+  occurrence = "anytime",
+  custom_motif = "hello!",
   content = c("lowercase letters", "uppercase letters", "custom")
 )
 }

@@ -12,59 +12,59 @@
 #' @examples
 #' validate_regex(bricks = list("yes", "or", "no"))
 validate_regex <- function(bricks) {
-  if ("start" %in% bricks && bricks[1] != "start") {
-    show_toast(
-      title = "woups",
-      text = "start `^` should be the first element",
-      type = "warning",
-      timer = 3000,
-      width = "400px"
-    )
-    return(FALSE)
-  }
-  if ("end" %in% bricks && bricks[length(bricks)] != "end") {
-    show_toast(
-      title = "woups",
-      text = "end `$` should be the last element",
-      type = "warning",
-      timer = 3000,
-      width = "400px"
-    )
-    return(FALSE)
-  }
-  if ("or" %in% bricks) {
-    or_idx <- which(bricks == "or")
-    is_first_or_last <- any(c(1, length(bricks)) %in% or_idx)
+	if ("start" %in% bricks && bricks[1] != "start") {
+		show_toast(
+			title = "woups",
+			text = "start `^` should be the first element",
+			type = "warning",
+			timer = 3000,
+			width = "400px"
+		)
+		return(FALSE)
+	}
+	if ("end" %in% bricks && bricks[length(bricks)] != "end") {
+		show_toast(
+			title = "woups",
+			text = "end `$` should be the last element",
+			type = "warning",
+			timer = 3000,
+			width = "400px"
+		)
+		return(FALSE)
+	}
+	if ("or" %in% bricks) {
+		or_idx <- which(bricks == "or")
+		is_first_or_last <- any(c(1, length(bricks)) %in% or_idx)
 
-    if (is_first_or_last) {
-      # cannot be first or last
-      show_toast(
-        title = "woups",
-        text = "or `|` should not be 1st or last element",
-        type = "warning",
-        timer = 3000,
-        width = "400px"
-      )
-      return(FALSE)
-    }
+		if (is_first_or_last) {
+			# cannot be first or last
+			show_toast(
+				title = "woups",
+				text = "or `|` should not be 1st or last element",
+				type = "warning",
+				timer = 3000,
+				width = "400px"
+			)
+			return(FALSE)
+		}
 
-    right_idx <- or_idx + 1[or_idx != length(bricks)]
-    left_idx <- or_idx - 1[or_idx != 1]
+		right_idx <- or_idx + 1[or_idx != length(bricks)]
+		left_idx <- or_idx - 1[or_idx != 1]
 
-    is_next_to_start_end <- any(
-      c("start", "end") %in% bricks[c(left_idx, right_idx)]
-    )
+		is_next_to_helper <- any(
+			c("start", "end", "or") %in% bricks[c(left_idx, right_idx)]
+		)
 
-    if (is_next_to_start_end) {
-      show_toast(
-        title = "woups",
-        text = "or `|` should not be close to start/end",
-        type = "warning",
-        timer = 3000,
-        width = "400px"
-      )
-      return(FALSE)
-    }
-  }
-  return(TRUE)
+		if (is_next_to_helper) {
+			show_toast(
+				title = "woups",
+				text = "or `|` should not be next to another helper",
+				type = "warning",
+				timer = 3000,
+				width = "400px"
+			)
+			return(FALSE)
+		}
+	}
+	return(TRUE)
 }
