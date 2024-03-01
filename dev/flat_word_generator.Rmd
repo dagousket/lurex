@@ -34,19 +34,22 @@ generate_from_brick <- function(
     brick,
     use_scrabble = TRUE,
     maxword = 10,
-    maxfreq = 2) {
+    maxfreq = 10) {
   # verify brick list
-  brick_items <- c("brick", "type", "content", "occurrence", "custom_motif", "custom_occurrence")
+  brick_items <- c(
+    "brick",
+    "type",
+    "content",
+    "occurrence",
+    "custom_motif",
+    "custom_occurrence"
+  )
+
   if (!all(brick_items %in% names(brick))) {
     stop("brick input list does not have all required items")
   }
 
   if (brick$type == "ordered") {
-    # only custom motif is allowed here at the moment
-    if (use_scrabble) {
-      scrabble_match <- search_in_scrabble()
-    }
-
     # repeat motif accoring to occurrence
     occurrence_equivalence <- list(
       "once" = 1,
@@ -56,31 +59,119 @@ generate_from_brick <- function(
     )
     motif_reps <- occurrence_equivalence[[brick$occurrence]]
 
-    if (length(motif_reps) > maxword) {
-      motif_reps <- sample(motif_reps, size = maxword, replace = FALSE)
-    }
-    wordlist <- map_chr(motif_reps, \(x){
+    invented_match <- map_chr(motif_reps, \(x){
       paste(rep(brick$custom_motif, x), collapse = "")
     })
 
-    return(wordlist)
+    if (length(invented_match) > maxword) {
+      invented_match <- sample(invented_match, size = maxword, replace = FALSE)
+    }
+
+    return(invented_match)
   } else if (brick$type == "unordered") {
-    # search in scrabble (lower/upper case ?)
+    if (use_scrabble) {
+      scrabble_match <- search_in_scrabble(brick$brick)
+    }
 
     # generate from sampling
+    extra_word_to_generate <- max(0, maxword - length(scrabble_match))
+    if (extra_word_to_generate == 0) {
+      return(sample(scrabble_match, maxword))
+    } else {
+      all_characters <- unlist(strsplit(rawToChar(as.raw(1:127)), ""))
+      char_bucket <- list(
+        "lowercase letters" = LETTERS,
+        "uppercase letters" = letters,
+        "digits" = 0:9,
+        "punctuation" = grep("[[:punct:]]", all_characters, value = TRUE),
+        "space and tab" = grep("[[:blank:]]", all_characters, value = TRUE),
+        "wildcard" = grep(".", all_characters, value = TRUE),
+        "custom" = strsplit(brick$custom_motif, "")
+      )
+      char_bucket <- unique(unlist(char_bucket[brick$content]))
+
+      # complete scrabble list up to max_word
+      if (brick$occurrence == "once") {
+        repeats <- 1
+      } else if (brick$occurrence != "custom") {
+        repeats <- sample.int(
+          maxfreq,
+          size = extra_word_to_generate,
+          replace = TRUE
+        )
+      } else if (brick$occurrence == "custom") {
+        custom_occurrence[2] <- sub(
+          "no max",
+          maxfreq,
+          brick$custom_occurrence[2]
+        )
+        sample_range <- seq.int(
+          from = as.numeric(brick$custom_occurrence[1]),
+          to = max(c(maxfreq, as.numeric(brick$custom_occurrence[2])))
+        )
+        repeats <- sample.int(
+          sample_range,
+          size = extra_word_to_generate,
+          replace = TRUE
+        )
+      }
+      invented_match <- map_chr(
+        .x = repeats,
+        .f = \(x) {
+          paste0(
+            sample(
+              x = char_bucket,
+              size = x,
+              replace = TRUE
+            ),
+            collapse = ""
+          )
+        }
+      )
+      return(c(scrabble_match, invented_match))
+    }
   }
-}
-
-
-#' Search in scrabble
-#' @noRd
-search_in_scrabble <- function() {
-
 }
 ```
 
 ```{r examples-generate_from_brick}
+# generate_from_brick(brick)
+```
 
+```{r tests-generate_from_brick}
+test_that("function returns error for unexpected input", {
+
+})
+```
+
+## Search a word in Scarbble
+
+```{r function-search_in_scrabble}
+#' Search a word from Scrabble with regex
+#'
+#' @param brick list. A list of the regex specifics
+#'
+#' @importFrom purrr map2
+#'
+#' @return wordlist. A character string matching the regex.
+#' @export
+#'
+#' @noRd
+search_in_scrabble <- function(
+    brick) {
+  # search work for unorderd (lower or upper case)
+  match_all <- grep(
+    pattern = paste0("^(", brick, ")$"),
+    x = c(wordlist, toupper(wordlist))
+  )
+
+  # TODO : case-sensitive generation
+  return(unique(wordlist[match_all]))
+}
+```
+
+```{r examples-generate_from_brick}
+search_in_scrabble(brick = "morning")
 ```
 
 ```{r tests-generate_from_brick}

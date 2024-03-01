@@ -15,10 +15,28 @@ flat_regex_brick.Rmd:
     check: false
     document: true
     overwrite: ask
+flat_word_generator.Rmd:
+  path: dev/flat_word_generator.Rmd
+  state: active
+  R:
+  - R/generate_from_brick.R
+  - R/search_in_scrabble.R
+  tests:
+  - tests/testthat/test-generate_from_brick.R
+  - tests/testthat/test-search_in_scrabble.R
+  vignettes: []
+  inflate:
+    flat_file: dev/flat_word_generator.Rmd
+    vignette_name: .na
+    open_vignette: false
+    check: false
+    document: true
+    overwrite: ask
 keep:
   path: keep
   state: active
   R:
+  - R/doc_wordlist.R
   - R/app_config.R
   - R/app_server.R
   - R/app_ui.R

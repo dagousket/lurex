@@ -17,8 +17,7 @@ mod_combine_brick_ui <- function(id) {
 		h3("Order your motifs"),
 		uiOutput(ns("sortable_1")),
 		fluidRow(
-			column(
-				4,
+			col_4(
 				p("bin"),
 				uiOutput(ns("sortable_2")),
 				actionButton(
@@ -27,8 +26,7 @@ mod_combine_brick_ui <- function(id) {
 					icon = icon("trash")
 				)
 			),
-			column(
-				8,
+			col_8(
 				span(
 					"helpers",
 					tooltip(

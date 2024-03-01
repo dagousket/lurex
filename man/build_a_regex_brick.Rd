@@ -51,6 +51,6 @@ build_a_regex_brick(
   type = "unordered",
   occurrence = "anytime",
   custom_motif = "hello!",
-  content = c("lowercase letters", "uppercase letters", "custom")
+  content = c("punctuation", "custom")
 )
 }

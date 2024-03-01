@@ -6,8 +6,8 @@
 #'
 #' @noRd
 #'
-#' @importFrom shiny NS tagList
-#' @importFrom shinyWidgets pickerInput prettySwitch sliderTextInput
+#' @importFrom shiny NS tagList selectInput textInput actionButton
+#' @importFrom shinyWidgets prettySwitch sliderTextInput
 #' @importFrom bslib tooltip
 #' @importFrom bsicons bs_icon
 mod_regex_brick_ui <- function(id) {
@@ -126,6 +126,7 @@ mod_regex_brick_server <- function(id, r) {
 					golem::invoke_js("showid", ns("custom_motif"))
 				} else {
 					golem::invoke_js("hideid", ns("custom_motif"))
+					# faut aussi cacher le label
 				}
 			}
 		)

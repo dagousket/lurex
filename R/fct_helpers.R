@@ -2,7 +2,7 @@
 one_nav <- function(
 	id,
 	text
-				) {
+) {
 	sprintf(
 		'<li class="nav-item"><a class="nav-link js-scroll-trigger" href="#%s">%s</a></li>',
 		id,
@@ -13,7 +13,7 @@ one_nav <- function(
 one_section <- function(
 	id,
 	...
-				) {
+) {
 	tagList(
 		tags$section(
 			class = "resume-section",

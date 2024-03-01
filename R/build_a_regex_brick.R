@@ -32,7 +32,7 @@
 #' 	type = "unordered",
 #' 	occurrence = "anytime",
 #' 	custom_motif = "hello!",
-#' 	content = c("lowercase letters", "uppercase letters", "custom")
+#' 	content = c("punctuation", "custom")
 #' )
 build_a_regex_brick <- function(
 	type = c("ordered", "unordered"),
@@ -58,6 +58,7 @@ build_a_regex_brick <- function(
 	# escape special character
 	if (isTRUE(escape)) {
 		# escape special
+		unescaped_motif <- custom_motif
 		custom_motif <- str_escape(custom_motif)
 		# avoid creating range in unordered input with `-`
 		if (type == "unordered" && grepl("-", custom_motif)) {
@@ -121,7 +122,7 @@ build_a_regex_brick <- function(
 		type = type,
 		content = content,
 		occurrence = occurrence,
-		custom_motif = custom_motif,
+		custom_motif = unescaped_motif,
 		custom_occurrence = custom_occurrence
 	)
 
