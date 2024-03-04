@@ -49,6 +49,17 @@ generate_from_brick <- function(
     stop("brick input list does not have all required items")
   }
 
+  # convert no max if custom range is used
+  if (brick$occurrence == "custom") {
+    brick$custom_occurrence[2] <- sub(
+      "no max",
+      maxfreq,
+      brick$custom_occurrence[2]
+    )
+  } else {
+    brick$custom_occurrence <- c(0, 0)
+  }
+
   if (brick$type == "ordered") {
     # repeat motif accoring to occurrence
     occurrence_equivalence <- list(
@@ -63,14 +74,26 @@ generate_from_brick <- function(
       paste(rep(brick$custom_motif, x), collapse = "")
     })
 
-    if (length(invented_match) > maxword) {
-      invented_match <- sample(invented_match, size = maxword, replace = FALSE)
-    }
+    use_duplicates <- length(invented_match) < maxword
+    invented_match <- sample(
+      invented_match,
+      size = maxword,
+      replace = use_duplicates
+    )
 
     return(invented_match)
   } else if (brick$type == "unordered") {
-    if (use_scrabble) {
-      scrabble_match <- search_in_scrabble(brick$brick)
+    some_letters_in_regex <- any(
+      c(
+        "lowercase letters",
+        "uppercase letters",
+        "custom"
+      ) %in% brick$content
+    )
+    if (use_scrabble && some_letters_in_regex) {
+      scrabble_match <- search_in_scrabble(brick)
+    } else {
+      scrabble_match <- c()
     }
 
     # generate from sampling
@@ -78,10 +101,10 @@ generate_from_brick <- function(
     if (extra_word_to_generate == 0) {
       return(sample(scrabble_match, maxword))
     } else {
-      all_characters <- unlist(strsplit(rawToChar(as.raw(1:127)), ""))
+      all_characters <- unlist(strsplit(rawToChar(as.raw(32:126)), ""))
       char_bucket <- list(
-        "lowercase letters" = LETTERS,
-        "uppercase letters" = letters,
+        "lowercase letters" = letters,
+        "uppercase letters" = LETTERS,
         "digits" = 0:9,
         "punctuation" = grep("[[:punct:]]", all_characters, value = TRUE),
         "space and tab" = grep("[[:blank:]]", all_characters, value = TRUE),
@@ -92,24 +115,19 @@ generate_from_brick <- function(
 
       # complete scrabble list up to max_word
       if (brick$occurrence == "once") {
-        repeats <- 1
+        repeats <- rep(1, extra_word_to_generate)
       } else if (brick$occurrence != "custom") {
-        repeats <- sample.int(
+        repeats <- sample(
           maxfreq,
           size = extra_word_to_generate,
           replace = TRUE
         )
       } else if (brick$occurrence == "custom") {
-        custom_occurrence[2] <- sub(
-          "no max",
-          maxfreq,
-          brick$custom_occurrence[2]
-        )
         sample_range <- seq.int(
           from = as.numeric(brick$custom_occurrence[1]),
-          to = max(c(maxfreq, as.numeric(brick$custom_occurrence[2])))
+          to = min(c(maxfreq, as.numeric(brick$custom_occurrence[2])))
         )
-        repeats <- sample.int(
+        repeats <- sample(
           sample_range,
           size = extra_word_to_generate,
           replace = TRUE
@@ -135,7 +153,33 @@ generate_from_brick <- function(
 ```
 
 ```{r examples-generate_from_brick}
-# generate_from_brick(brick)
+brick <- build_a_regex_brick(
+  type = "ordered",
+  occurrence = "custom",
+  custom_motif = "heyho",
+  content = NULL,
+  custom_occurrence = c(5, 10)
+)
+
+generate_from_brick(brick)
+
+brick <- build_a_regex_brick(
+  type = "unordered",
+  occurrence = "at least once",
+  custom_motif = "write your motif here",
+  content = c("digit")
+)
+
+generate_from_brick(brick)
+
+brick <- build_a_regex_brick(
+  type = "unordered",
+  occurrence = "anytime",
+  custom_motif = "WonDERFul",
+  content = c("custom")
+)
+
+generate_from_brick(brick)
 ```
 
 ```{r tests-generate_from_brick}
@@ -144,34 +188,95 @@ test_that("function returns error for unexpected input", {
 })
 ```
 
-## Search a word in Scarbble
+## Search a word in Scrabble
 
 ```{r function-search_in_scrabble}
 #' Search a word from Scrabble with regex
 #'
-#' @param brick list. A list of the regex specifics
+#' @param brick list. A list of the regex specifics, works for unordered regex.
 #'
-#' @importFrom purrr map2
+#' @importFrom purrr map map_vec
+#' @importFrom stringr str_extract_all
 #'
 #' @return wordlist. A character string matching the regex.
-#' @export
 #'
 #' @noRd
 search_in_scrabble <- function(
     brick) {
-  # search work for unorderd (lower or upper case)
+  if (brick$type != "unordered") {
+    stop("scrabble search is only available for unordered motifs")
+  }
+  wordlist <- lurex::wordlist
+
+  # match full upper or full lower case
   match_all <- grep(
-    pattern = paste0("^(", brick, ")$"),
+    pattern = paste0("^(", brick$brick, ")$"),
     x = c(wordlist, toupper(wordlist))
   )
+  all_matches <- c(wordlist, toupper(wordlist))[match_all]
 
-  # TODO : case-sensitive generation
-  return(unique(wordlist[match_all]))
+  universal_case <- all(
+    c(
+      "lowercase letters",
+      "uppercase letters"
+    ) %in% brick$content
+  )
+
+  if ("custom" %in% brick$content || universal_case) {
+    # list which letter is found as upper or lower case
+    if (universal_case) {
+      letters_bucket <- map(.x = letters, .f = \(x){
+        c(x, toupper(x))
+      })
+    } else {
+      letters_bucket <- map_vec(.x = letters, .f = \(x){
+        unique(
+          str_extract_all(
+            string = brick$custom_motif,
+            pattern = paste0(c(x, toupper(x)), collapse = "|")
+          )
+        )
+      })
+    }
+    names(letters_bucket) <- letters
+
+    # scan wordlist match and pick correct case
+    mixed_case_match <- map_chr(.x = all_matches, .f = \(word){
+      paste(
+        map(.x = strsplit(word, split = "")[[1]], \(word_letter){
+          sample(letters_bucket[[tolower(word_letter)]], 1)
+        }),
+        collapse = ""
+      )
+    })
+
+    all_matches <- c(all_matches, mixed_case_match)
+  }
+
+  return(unique(all_matches))
 }
 ```
 
 ```{r examples-generate_from_brick}
-search_in_scrabble(brick = "morning")
+brick <- build_a_regex_brick(
+  type = "unordered",
+  occurrence = "anytime",
+  custom_motif = "hello!",
+  content = c("punctuation", "custom")
+)
+
+generate_from_brick(brick)
+
+brick <- list(
+  brick = "[[:upper:]]{1,5}",
+  type = "unordered",
+  content = "uppercase letters",
+  occurrence = "custom",
+  custom_motif = "write your motif here",
+  custom_occurrence = c("1", "5")
+)
+
+generate_from_brick(brick)
 ```
 
 ```{r tests-generate_from_brick}
@@ -180,6 +285,140 @@ test_that("function returns error for unexpected input", {
 })
 ```
 
+## Generate match from combined regex
+
+```{r function-generate_from_regex}
+#' List possible matches for a regex composed of multiple bricks
+#'
+#' @param brick_list list. A list of bricks.
+#' @param n integer. The number of match to return.
+#' @param n_bound integer. The number of character to add around match.
+#' This will be aded if no start/end helper is detected.
+#' @param use_scrabble logical. Should we first look for match in scrabble.
+#'
+#' @return matchlist. A character string matching the regex.
+#'
+#' @noRd
+generate_from_regex <- function(
+    brick_list,
+    brick_info,
+    n = 10,
+    n_bound = 5,
+    use_scrabble = TRUE) {
+  # verify presence of `or` groups
+  if ("or" %in% brick_list) {
+    # extract groups
+    or_idx <- which(brick_list == "or")
+    regex_groups <- findInterval(
+      1:length(brick_list),
+      or_idx
+    )
+    # clean `or` from lists
+    brick_list <- brick_list[-or_idx]
+    regex_groups <- regex_groups[-or_idx]
+  } else {
+    regex_groups <- rep(1, length(brick_list))
+  }
+
+  # create by group
+  groups_id <- unique(regex_groups)
+  n_in_group <- ceiling(n / length(groups_id))
+
+  list_of_n <- c()
+  for (id in groups_id) {
+    # verify presence of `start`/`end` helpers
+    all_characters <- unlist(strsplit(rawToChar(as.raw(32:126)), ""))
+    group_bricks <- brick_list[regex_groups == id]
+
+    if (group_bricks[1] == "start") {
+      char_before <- rep("", n_in_group)
+      group_bricks <- group_bricks[-1]
+    } else {
+      char_before <- replicate(
+        n_in_group,
+        paste0(sample(all_characters, n_bound), collapse = "")
+      )
+    }
+
+    if (group_bricks[length(group_bricks)] == "end") {
+      group_bricks <- group_bricks[-length(group_bricks)]
+      char_after <- rep("", n_in_group)
+    } else {
+      char_after <- replicate(
+        n_in_group,
+        paste0(sample(all_characters, n_bound), collapse = "")
+      )
+    }
+
+    # generate each regex brick with maxword = n / (number of group)
+    char_inside <- map(
+      brick_info[group_bricks],
+      \(x) {
+        generate_from_brick(
+          x,
+          maxword = n_in_group,
+          use_scrabble = use_scrabble
+        )
+      }
+    )
+
+    # bind them into final list of matches
+    list_of_n_in_group <- map_chr(
+      .x = 1:n_in_group,
+      .f = \(x){
+        paste0(
+          c(
+            char_before[x],
+            map_vec(char_inside, x),
+            char_after[x]
+          ),
+          collapse = ""
+        )
+      }
+    )
+
+    list_of_n <- c(list_of_n, list_of_n_in_group)
+  }
+  return(sample(list_of_n))
+}
+```
+
+```{r examples-generate_from_regex}
+brick_list <- c("start", "1", "2", "4", "3", "5", "end")
+
+brick_info <- list(
+  `1` = list(
+    brick = "(football)", type = "ordered", content = NULL,
+    occurrence = "once", custom_motif = "football", custom_occurrence = NULL
+  ),
+  `2` = list(
+    brick = "[[:blank:]]+", type = "unordered", content = "space and tab",
+    occurrence = "at least once", custom_motif = "football",
+    custom_occurrence = NULL
+  ), `3` = list(
+    brick = "[[:blank:]]+",
+    type = "unordered", content = "space and tab", occurrence = "at least once",
+    custom_motif = "football", custom_occurrence = NULL
+  ),
+  `4` = list(
+    brick = "(is)", type = "ordered", content = NULL,
+    occurrence = "once", custom_motif = "is", custom_occurrence = NULL
+  ),
+  `5` = list(
+    brick = "[[:upper:]]{3,5}", type = "unordered",
+    content = "uppercase letters", occurrence = "custom",
+    custom_motif = "is", custom_occurrence = c("3", "5")
+  )
+)
+
+generate_from_regex(brick_list = brick_list, brick_info = brick_info)
+```
+
+```{r tests-generate_from_regex}
+test_that("function returns error for unexpected input", {
+
+})
+```
 ```{r development-inflate, eval=FALSE}
 # Keep eval=FALSE to avoid infinite loop in case you hit the knit button
 # Execute in the console directly

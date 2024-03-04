@@ -1,6 +1,6 @@
 Package: lurex
 Title: Learn to Use Regular EXpression
-Version: 0.0.0.9000
+Version: 0.0.1
 Authors@R: 
     person("Swann", "Floc'hlay", , "swann@thinkr.fr", role = c("cre", "aut"))
 Description: A simple app to help build simple regex.

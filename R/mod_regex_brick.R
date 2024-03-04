@@ -21,46 +21,52 @@ mod_regex_brick_ui <- function(id) {
 				"type of text",
 				tooltip(
 					bs_icon("info-circle"),
-					"some info here",
+					"does the order of the characters matter ?",
 					placement = "bottom"
 				)
 			),
 			choices = c("unordered", "ordered")
 		),
 		p(),
-		selectInput(
-			inputId = ns("content_type"),
-			label = span(
-				"type of content",
-				tooltip(
-					bs_icon("info-circle"),
-					"some info here",
-					placement = "bottom"
-				)
+		span(
+			selectInput(
+				inputId = ns("content_type"),
+				label = span(
+					"type of content",
+					tooltip(
+						bs_icon("info-circle"),
+						"which type of character are you looking for ?",
+						placement = "bottom"
+					)
+				),
+				choices = c(
+					"wildcard",
+					"lowercase letters",
+					"uppercase letters",
+					"digits",
+					"punctuation",
+					"space and tab",
+					"custom"
+				),
+				multiple = TRUE
 			),
-			choices = c(
-				"wildcard",
-				"lowercase letters",
-				"uppercase letters",
-				"digits",
-				"punctuation",
-				"space and tab",
-				"custom"
-			),
-			multiple = TRUE
+			id = ns("content_span")
 		),
 		p(),
-		textInput(
-			inputId = ns("custom_motif"),
-			label = span(
-				"custom motif",
-				tooltip(
-					bs_icon("info-circle"),
-					"some info here",
-					placement = "bottom"
-				)
+		span(
+			textInput(
+				inputId = ns("custom_motif"),
+				label = span(
+					"custom motif",
+					tooltip(
+						bs_icon("info-circle"),
+						"include a specific set of word/character to search for",
+						placement = "bottom"
+					)
+				),
+				placeholder = "write your motif here"
 			),
-			value = "write your motif here"
+			id = ns("custommotif_span")
 		),
 		p(),
 		selectInput(
@@ -69,33 +75,46 @@ mod_regex_brick_ui <- function(id) {
 				"occurrence",
 				tooltip(
 					bs_icon("info-circle"),
-					"some info here",
+					"how many times should this motif be detected ?",
 					placement = "bottom"
 				)
 			),
 			choices = c("once", "at least once", "anytime", "custom")
 		),
 		p(),
-		sliderTextInput(
-			inputId = ns("occurrence_slider"),
-			label = "custom range",
-			choices = c(as.character(0:10), "no max"),
-			selected = c("1", "2")
+		span(
+			sliderTextInput(
+				inputId = ns("occurrence_slider"),
+				label = span(
+					"custom range",
+					tooltip(
+						bs_icon("info-circle"),
+						"what are the min/max occurrence boundaries ?",
+						placement = "bottom"
+					)
+				),
+				choices = c(as.character(0:10), "no max"),
+				selected = c("1", "2")
+			),
+			id = ns("customrange_span")
 		),
 		p(),
-		prettySwitch(
-			inputId = ns("escape_special"),
-			label = span(
-				"Escape special character",
-				tooltip(
-					bs_icon("info-circle"),
-					"some info here",
-					placement = "bottom"
-				)
+		span(
+			prettySwitch(
+				inputId = ns("escape_special"),
+				label = span(
+					"Escape special character",
+					tooltip(
+						bs_icon("info-circle"),
+						"treat custom motif as raw text without regex interpreatation",
+						placement = "bottom"
+					)
+				),
+				status = "info",
+				value = TRUE,
+				fill = TRUE
 			),
-			status = "info",
-			value = TRUE,
-			fill = TRUE
+			id = ns("escape_span")
 		),
 		p(),
 		actionButton(
@@ -115,18 +134,35 @@ mod_regex_brick_server <- function(id, r) {
 		ns <- session$ns
 
 		# hide custom options at start
-		golem::invoke_js("hideid", ns("custom_motif"))
-		golem::invoke_js("hideid", ns("occurrence_slider"))
+		golem::invoke_js("hideid", ns("custommotif_span"))
+		golem::invoke_js("hideid", ns("customrange_span"))
+		golem::invoke_js("hideid", ns("content_span"))
+		golem::invoke_js("hideid", ns("escape_span"))
+
+		# hiding / showing content type entries
+		observeEvent(
+			input$motif_type,
+			{
+				if (input$motif_type == "unordered") {
+					golem::invoke_js("showid", ns("content_span"))
+				} else if (input$motif_type == "ordered") {
+					golem::invoke_js("hideid", ns("content_span"))
+					golem::invoke_js("showid", ns("custommotif_span"))
+					golem::invoke_js("showid", ns("escape_span"))
+				}
+			}
+		)
 
 		# hiding / showing custom motif entries
 		observeEvent(
 			input$content_type,
 			{
 				if ("custom" %in% input$content_type) {
-					golem::invoke_js("showid", ns("custom_motif"))
+					golem::invoke_js("showid", ns("custommotif_span"))
+					golem::invoke_js("showid", ns("escape_span"))
 				} else {
-					golem::invoke_js("hideid", ns("custom_motif"))
-					# faut aussi cacher le label
+					golem::invoke_js("hideid", ns("custommotif_span"))
+					golem::invoke_js("hideid", ns("escape_span"))
 				}
 			}
 		)
@@ -136,9 +172,9 @@ mod_regex_brick_server <- function(id, r) {
 			input$occurrence,
 			{
 				if ("custom" %in% input$occurrence) {
-					golem::invoke_js("showid", ns("occurrence_slider"))
+					golem::invoke_js("showid", ns("customrange_span"))
 				} else {
-					golem::invoke_js("hideid", ns("occurrence_slider"))
+					golem::invoke_js("hideid", ns("customrange_span"))
 				}
 			}
 		)

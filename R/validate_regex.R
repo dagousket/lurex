@@ -10,30 +10,47 @@
 #' @export
 #'
 #' @examples
-#' validate_regex(bricks = list("yes", "or", "no"))
+#' validate_regex(
+#' 	bricks = list("1", "end", "or", "2", "end", "or", "3", "4", "end")
+#' )
 validate_regex <- function(bricks) {
-	if ("start" %in% bricks && bricks[1] != "start") {
-		show_toast(
-			title = "woups",
-			text = "start `^` should be the first element",
-			type = "warning",
-			timer = 3000,
-			width = "400px"
-		)
+	# get idx
+	or_idx <- which(bricks == "or")
+	start_idx <- which(bricks == "start")
+	end_idx <- which(bricks == "end")
+
+	if (all(bricks %in% c("start", "end", "stop"))) {
 		return(FALSE)
 	}
-	if ("end" %in% bricks && bricks[length(bricks)] != "end") {
-		show_toast(
-			title = "woups",
-			text = "end `$` should be the last element",
-			type = "warning",
-			timer = 3000,
-			width = "400px"
-		)
-		return(FALSE)
+
+	if ("start" %in% bricks) {
+		# start can be found as 1st element or after a "or"
+		if (!all(start_idx %in% c(1, or_idx + 1))) {
+			show_toast(
+				title = "woups",
+				text = "start `^` should be the first element",
+				type = "warning",
+				timer = 3000,
+				width = "400px"
+			)
+			return(FALSE)
+		}
 	}
+
+	if ("end" %in% bricks) {
+		if (!all(end_idx %in% c(length(bricks), or_idx - 1))) {
+			show_toast(
+				title = "woups",
+				text = "end `$` should be the last element",
+				type = "warning",
+				timer = 3000,
+				width = "400px"
+			)
+			return(FALSE)
+		}
+	}
+
 	if ("or" %in% bricks) {
-		or_idx <- which(bricks == "or")
 		is_first_or_last <- any(c(1, length(bricks)) %in% or_idx)
 
 		if (is_first_or_last) {
@@ -52,13 +69,13 @@ validate_regex <- function(bricks) {
 		left_idx <- or_idx - 1[or_idx != 1]
 
 		is_next_to_helper <- any(
-			c("start", "end", "or") %in% bricks[c(left_idx, right_idx)]
+			c("or") %in% bricks[c(left_idx, right_idx)]
 		)
 
 		if (is_next_to_helper) {
 			show_toast(
 				title = "woups",
-				text = "or `|` should not be next to another helper",
+				text = "or `|` should not be next to another `|`",
 				type = "warning",
 				timer = 3000,
 				width = "400px"

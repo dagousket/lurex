@@ -13,7 +13,33 @@
 #' @export
 #'
 #' @examples
-#' # generate_from_brick(brick)
+#' brick <- build_a_regex_brick(
+#' 	type = "ordered",
+#' 	occurrence = "custom",
+#' 	custom_motif = "heyho",
+#' 	content = NULL,
+#' 	custom_occurrence = c(5, 10)
+#' )
+#'
+#' generate_from_brick(brick)
+#'
+#' brick <- build_a_regex_brick(
+#' 	type = "unordered",
+#' 	occurrence = "at least once",
+#' 	custom_motif = "write your motif here",
+#' 	content = c("digit")
+#' )
+#'
+#' generate_from_brick(brick)
+#'
+#' brick <- build_a_regex_brick(
+#' 	type = "unordered",
+#' 	occurrence = "anytime",
+#' 	custom_motif = "WonDERFul",
+#' 	content = c("custom")
+#' )
+#'
+#' generate_from_brick(brick)
 generate_from_brick <- function(
 	brick,
 	use_scrabble = TRUE,
@@ -34,6 +60,17 @@ generate_from_brick <- function(
 		stop("brick input list does not have all required items")
 	}
 
+	# convert no max if custom range is used
+	if (brick$occurrence == "custom") {
+		brick$custom_occurrence[2] <- sub(
+			"no max",
+			maxfreq,
+			brick$custom_occurrence[2]
+		)
+	} else {
+		brick$custom_occurrence <- c(0, 0)
+	}
+
 	if (brick$type == "ordered") {
 		# repeat motif accoring to occurrence
 		occurrence_equivalence <- list(
@@ -48,14 +85,26 @@ generate_from_brick <- function(
 			paste(rep(brick$custom_motif, x), collapse = "")
 		})
 
-		if (length(invented_match) > maxword) {
-			invented_match <- sample(invented_match, size = maxword, replace = FALSE)
-		}
+		use_duplicates <- length(invented_match) < maxword
+		invented_match <- sample(
+			invented_match,
+			size = maxword,
+			replace = use_duplicates
+		)
 
 		return(invented_match)
 	} else if (brick$type == "unordered") {
-		if (use_scrabble) {
-			scrabble_match <- search_in_scrabble(brick$brick)
+		some_letters_in_regex <- any(
+			c(
+				"lowercase letters",
+				"uppercase letters",
+				"custom"
+			) %in% brick$content
+		)
+		if (use_scrabble && some_letters_in_regex) {
+			scrabble_match <- search_in_scrabble(brick)
+		} else {
+			scrabble_match <- c()
 		}
 
 		# generate from sampling
@@ -63,10 +112,10 @@ generate_from_brick <- function(
 		if (extra_word_to_generate == 0) {
 			return(sample(scrabble_match, maxword))
 		} else {
-			all_characters <- unlist(strsplit(rawToChar(as.raw(1:127)), ""))
+			all_characters <- unlist(strsplit(rawToChar(as.raw(32:126)), ""))
 			char_bucket <- list(
-				"lowercase letters" = LETTERS,
-				"uppercase letters" = letters,
+				"lowercase letters" = letters,
+				"uppercase letters" = LETTERS,
 				"digits" = 0:9,
 				"punctuation" = grep("[[:punct:]]", all_characters, value = TRUE),
 				"space and tab" = grep("[[:blank:]]", all_characters, value = TRUE),
@@ -77,24 +126,19 @@ generate_from_brick <- function(
 
 			# complete scrabble list up to max_word
 			if (brick$occurrence == "once") {
-				repeats <- 1
+				repeats <- rep(1, extra_word_to_generate)
 			} else if (brick$occurrence != "custom") {
-				repeats <- sample.int(
+				repeats <- sample(
 					maxfreq,
 					size = extra_word_to_generate,
 					replace = TRUE
 				)
 			} else if (brick$occurrence == "custom") {
-				custom_occurrence[2] <- sub(
-					"no max",
-					maxfreq,
-					brick$custom_occurrence[2]
-				)
 				sample_range <- seq.int(
 					from = as.numeric(brick$custom_occurrence[1]),
-					to = max(c(maxfreq, as.numeric(brick$custom_occurrence[2])))
+					to = min(c(maxfreq, as.numeric(brick$custom_occurrence[2])))
 				)
-				repeats <- sample.int(
+				repeats <- sample(
 					sample_range,
 					size = extra_word_to_generate,
 					replace = TRUE

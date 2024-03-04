@@ -20,10 +20,12 @@ flat_word_generator.Rmd:
   state: active
   R:
   - R/generate_from_brick.R
+  - R/generate_from_regex.R
   - R/search_in_scrabble.R
   tests:
   - tests/testthat/test-generate_from_brick.R
   - tests/testthat/test-search_in_scrabble.R
+  - tests/testthat/test-generate_from_regex.R
   vignettes: []
   inflate:
     flat_file: dev/flat_word_generator.Rmd

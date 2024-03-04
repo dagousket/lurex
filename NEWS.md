@@ -1,3 +1,3 @@
-# lurex (development version)
+# lurex 0.0.1
 
-* Initial commit
+* First functional version

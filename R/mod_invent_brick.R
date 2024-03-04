@@ -15,10 +15,26 @@ mod_invent_brick_ui <- function(id) {
 		verbatimTextOutput(outputId = ns("regex")),
 		p(),
 		verbatimTextOutput(outputId = ns("match")),
+		p(),
 		actionButton(
 			inputId = ns("fetch_match"),
 			label = "give me more !",
 			icon = icon("circle-plus")
+		),
+		p(),
+		prettySwitch(
+			inputId = ns("search_scrabble"),
+			label = span(
+				"Search word in scrabble",
+				tooltip(
+					bs_icon("info-circle"),
+					"some info here",
+					placement = "bottom"
+				)
+			),
+			status = "info",
+			value = TRUE,
+			fill = TRUE
 		)
 	)
 }
@@ -50,12 +66,21 @@ mod_invent_brick_server <- function(id, r) {
 
 
 		observeEvent(input$fetch_match, {
-			output$match <- renderText({
-				validate(
-					need(r$is_regex_valid, "Your regex is not valid yet")
-				)
-				"match"
-			})
+			validate(
+				need(r$is_regex_valid, "Your regex is not valid yet")
+			)
+			r$regex_match <- paste(
+				generate_from_regex(
+					brick_list = r$regex_combined,
+					brick_info = r$regex_list,
+					use_scrabble = input$search_scrabble
+				),
+				collapse = "\n"
+			)
+		})
+
+		output$match <- renderText({
+			r$regex_match
 		})
 	})
 }

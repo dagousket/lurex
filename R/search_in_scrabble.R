@@ -2,24 +2,85 @@
 
 #' Search a word from Scrabble with regex
 #'
-#' @param brick list. A list of the regex specifics
+#' @param brick list. A list of the regex specifics, works for unordered regex.
 #'
-#' @importFrom purrr map2
+#' @importFrom purrr map map_vec
+#' @importFrom stringr str_extract_all
 #'
 #' @return wordlist. A character string matching the regex.
-#' @export
 #'
 #' @noRd
 #' @examples
-#' search_in_scrabble(brick = "morning")
+#' brick <- build_a_regex_brick(
+#' 	type = "unordered",
+#' 	occurrence = "anytime",
+#' 	custom_motif = "hello!",
+#' 	content = c("punctuation", "custom")
+#' )
+#'
+#' generate_from_brick(brick)
+#'
+#' brick <- list(
+#' 	brick = "[[:upper:]]{1,5}",
+#' 	type = "unordered",
+#' 	content = "uppercase letters",
+#' 	occurrence = "custom",
+#' 	custom_motif = "write your motif here",
+#' 	custom_occurrence = c("1", "5")
+#' )
+#'
+#' generate_from_brick(brick)
 search_in_scrabble <- function(
 	brick) {
-	# search work for unorderd (lower or upper case)
+	if (brick$type != "unordered") {
+		stop("scrabble search is only available for unordered motifs")
+	}
+	wordlist <- lurex::wordlist
+
+	# match full upper or full lower case
 	match_all <- grep(
-		pattern = paste0("^(", brick, ")$"),
+		pattern = paste0("^(", brick$brick, ")$"),
 		x = c(wordlist, toupper(wordlist))
 	)
+	all_matches <- c(wordlist, toupper(wordlist))[match_all]
 
-	# TODO : case-sensitive generation
-	return(unique(wordlist[match_all]))
+	universal_case <- all(
+		c(
+			"lowercase letters",
+			"uppercase letters"
+		) %in% brick$content
+	)
+
+	if ("custom" %in% brick$content || universal_case) {
+		# list which letter is found as upper or lower case
+		if (universal_case) {
+			letters_bucket <- map(.x = letters, .f = \(x){
+				c(x, toupper(x))
+			})
+		} else {
+			letters_bucket <- map_vec(.x = letters, .f = \(x){
+				unique(
+					str_extract_all(
+						string = brick$custom_motif,
+						pattern = paste0(c(x, toupper(x)), collapse = "|")
+					)
+				)
+			})
+		}
+		names(letters_bucket) <- letters
+
+		# scan wordlist match and pick correct case
+		mixed_case_match <- map_chr(.x = all_matches, .f = \(word){
+			paste(
+				map(.x = strsplit(word, split = "")[[1]], \(word_letter){
+					sample(letters_bucket[[tolower(word_letter)]], 1)
+				}),
+				collapse = ""
+			)
+		})
+
+		all_matches <- c(all_matches, mixed_case_match)
+	}
+
+	return(unique(all_matches))
 }

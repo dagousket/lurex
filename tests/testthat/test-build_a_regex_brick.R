@@ -41,5 +41,8 @@ test_that("function gives expected regex for unordered type", {
 		custom_motif = "hello",
 		content = c("lowercase letters", "uppercase letters", "custom")
 	)
-	expect_equal(object = regex_output$brick, expected = "[[:lower:][:upper:]hello]*")
+	expect_equal(
+		object = regex_output$brick,
+		expected = "[[:lower:][:upper:]hello]*"
+	)
 })

@@ -36,7 +36,15 @@
 #' )
 build_a_regex_brick <- function(
 	type = c("ordered", "unordered"),
-	content = c("wildcard", "lowercase letters", "uppercase letters", "digits", "punctuation", "space and tab", "custom"),
+	content = c(
+		"wildcard",
+		"lowercase letters",
+		"uppercase letters",
+		"digits",
+		"punctuation",
+		"space and tab",
+		"custom"
+	),
 	occurrence = c("once", "at least once", "anytime", "custom"),
 	custom_motif = NULL,
 	custom_occurrence = NULL,
