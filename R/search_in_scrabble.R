@@ -11,25 +11,12 @@
 #'
 #' @noRd
 #' @examples
-#' brick <- build_a_regex_brick(
-#' 	type = "unordered",
-#' 	occurrence = "anytime",
-#' 	custom_motif = "hello!",
-#' 	content = c("punctuation", "custom")
+#' search_in_scrabble(
+#' 	list(
+#' 		brick = "[zulu]{4,4}",
+#' 		type = "unordered"
+#' 	)
 #' )
-#'
-#' generate_from_brick(brick)
-#'
-#' brick <- list(
-#' 	brick = "[[:upper:]]{1,5}",
-#' 	type = "unordered",
-#' 	content = "uppercase letters",
-#' 	occurrence = "custom",
-#' 	custom_motif = "write your motif here",
-#' 	custom_occurrence = c("1", "5")
-#' )
-#'
-#' generate_from_brick(brick)
 search_in_scrabble <- function(
 	brick) {
 	if (brick$type != "unordered") {

@@ -4,10 +4,12 @@
 \alias{validate_regex}
 \title{Validate a regex combination}
 \usage{
-validate_regex(bricks)
+validate_regex(bricks, use_toast = TRUE)
 }
 \arguments{
 \item{bricks}{character. The ordered list of regex bricks}
+
+\item{use_toast}{logical. Should a UI toast be shown for incorrect regex.}
 }
 \value{
 logical. Side effect : trigger a toast widget

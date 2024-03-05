@@ -62,7 +62,10 @@ mod_combine_brick_server <- function(id, r) {
 			# re-insert helpers if present
 			if (any(c("or", "start", "end") %in% input$ranked_bricks)) {
 				helper_brick <- c("or" = "|", "start" = "^", "end" = "$")
-				brick_labels <- c(brick_labels, helper_brick)[input$ranked_bricks]
+				current_list <- input$ranked_bricks
+				current_bricks <- c(brick_labels, helper_brick)[current_list]
+				new_bricks <- brick_labels[!names(brick_labels) %in% current_list]
+				brick_labels <- c(current_bricks, new_bricks)
 			}
 
 			output$sortable_1 <- renderUI({

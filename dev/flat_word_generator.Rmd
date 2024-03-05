@@ -51,10 +51,14 @@ generate_from_brick <- function(
 
   # convert no max if custom range is used
   if (brick$occurrence == "custom") {
-    brick$custom_occurrence[2] <- sub(
+    up_bound <- sub(
       "no max",
       maxfreq,
       brick$custom_occurrence[2]
+    )
+    brick$custom_occurrence <- c(
+      as.numeric(brick$custom_occurrence[1]),
+      as.numeric(up_bound)
     )
   } else {
     brick$custom_occurrence <- c(0, 0)
@@ -117,8 +121,13 @@ generate_from_brick <- function(
       if (brick$occurrence == "once") {
         repeats <- rep(1, extra_word_to_generate)
       } else if (brick$occurrence != "custom") {
+        start_bound <- ifelse(
+          brick$occurrence == "at least once",
+          1,
+          0
+        )
         repeats <- sample(
-          maxfreq,
+          start_bound:maxfreq,
           size = extra_word_to_generate,
           replace = TRUE
         )
@@ -127,11 +136,18 @@ generate_from_brick <- function(
           from = as.numeric(brick$custom_occurrence[1]),
           to = min(c(maxfreq, as.numeric(brick$custom_occurrence[2])))
         )
-        repeats <- sample(
-          sample_range,
-          size = extra_word_to_generate,
-          replace = TRUE
-        )
+        if (length(sample_range) == 1) {
+          repeats <- rep(
+            sample_range,
+            extra_word_to_generate
+          )
+        } else {
+          repeats <- sample(
+            sample_range,
+            size = extra_word_to_generate,
+            replace = TRUE
+          )
+        }
       }
       invented_match <- map_chr(
         .x = repeats,
@@ -184,7 +200,65 @@ generate_from_brick(brick)
 
 ```{r tests-generate_from_brick}
 test_that("function returns error for unexpected input", {
+  expect_error(
+    {
+      generate_from_brick(brick = list())
+    },
+    regexp = "brick input list does not have all required items"
+  )
+})
 
+test_that("function returns true match for ordered input", {
+  brick <- list(
+    brick = "(heyho){5,10}",
+    type = "ordered",
+    content = NULL,
+    occurrence = "custom",
+    custom_motif = "heyho",
+    custom_occurrence = c(5, 10)
+  )
+  res <- generate_from_brick(brick)
+  expect_true(all(grepl(pattern = brick$brick, x = res)))
+})
+
+test_that("function returns true match for unordered input", {
+  brick <- list(
+    brick = "[[:digit:]]+",
+    type = "unordered",
+    content = "digits",
+    occurrence = "at least once",
+    custom_motif = "write your motif here",
+    custom_occurrence = NULL
+  )
+
+  res <- generate_from_brick(brick)
+  expect_true(all(grepl(pattern = brick$brick, x = res)))
+})
+
+test_that("function returns true scarbble match for unordered input", {
+  brick <- list(
+    brick = "[WonDERFul]*",
+    type = "unordered",
+    content = "custom",
+    occurrence = "custom",
+    custom_motif = "WonDERFul",
+    custom_occurrence = c(5, 10)
+  )
+
+  res <- generate_from_brick(brick)
+  expect_true(all(grepl(pattern = brick$brick, x = res)))
+
+  brick <- list(
+    brick = "[zul]{4,4}",
+    type = "unordered",
+    content = "custom",
+    occurrence = "custom",
+    custom_motif = "zul",
+    custom_occurrence = c(4, 4)
+  )
+
+  res <- generate_from_brick(brick)
+  expect_true(all(grepl(pattern = brick$brick, x = res)))
 })
 ```
 
@@ -257,31 +331,32 @@ search_in_scrabble <- function(
 }
 ```
 
-```{r examples-generate_from_brick}
-brick <- build_a_regex_brick(
-  type = "unordered",
-  occurrence = "anytime",
-  custom_motif = "hello!",
-  content = c("punctuation", "custom")
+```{r examples-search_in_scrabble}
+search_in_scrabble(
+  list(
+    brick = "[zulu]{4,4}",
+    type = "unordered"
+  )
 )
-
-generate_from_brick(brick)
-
-brick <- list(
-  brick = "[[:upper:]]{1,5}",
-  type = "unordered",
-  content = "uppercase letters",
-  occurrence = "custom",
-  custom_motif = "write your motif here",
-  custom_occurrence = c("1", "5")
-)
-
-generate_from_brick(brick)
 ```
 
-```{r tests-generate_from_brick}
+```{r tests-search_in_scrabble}
 test_that("function returns error for unexpected input", {
+  expect_error(
+    search_in_scrabble(list("type" = "incorrect")),
+    regexp = "scrabble search is only available for unordered motifs"
+  )
+})
 
+test_that("function returns all matches for correct input", {
+  res <- search_in_scrabble(
+    list(
+      brick = "[zulu]{4,4}",
+      type = "unordered"
+    )
+  )
+
+  expect_setequal(object = res, expected = c("lull", "lulu", "zulu"))
 })
 ```
 
@@ -310,7 +385,7 @@ generate_from_regex <- function(
     # extract groups
     or_idx <- which(brick_list == "or")
     regex_groups <- findInterval(
-      1:length(brick_list),
+      seq_along(brick_list),
       or_idx
     )
     # clean `or` from lists
@@ -384,39 +459,95 @@ generate_from_regex <- function(
 ```
 
 ```{r examples-generate_from_regex}
-brick_list <- c("start", "1", "2", "4", "3", "5", "end")
+brick_list <- c("start", "1", "end")
 
 brick_info <- list(
-  `1` = list(
-    brick = "(football)", type = "ordered", content = NULL,
-    occurrence = "once", custom_motif = "football", custom_occurrence = NULL
-  ),
-  `2` = list(
-    brick = "[[:blank:]]+", type = "unordered", content = "space and tab",
-    occurrence = "at least once", custom_motif = "football",
-    custom_occurrence = NULL
-  ), `3` = list(
-    brick = "[[:blank:]]+",
-    type = "unordered", content = "space and tab", occurrence = "at least once",
-    custom_motif = "football", custom_occurrence = NULL
-  ),
-  `4` = list(
-    brick = "(is)", type = "ordered", content = NULL,
-    occurrence = "once", custom_motif = "is", custom_occurrence = NULL
-  ),
-  `5` = list(
-    brick = "[[:upper:]]{3,5}", type = "unordered",
-    content = "uppercase letters", occurrence = "custom",
-    custom_motif = "is", custom_occurrence = c("3", "5")
+  `1` = build_a_regex_brick(
+    type = "unordered",
+    content = c("digits", "punctuation"),
+    occurrence = "custom",
+    custom_motif = "",
+    custom_occurrence = c("6", "no max")
   )
 )
 
-generate_from_regex(brick_list = brick_list, brick_info = brick_info)
+generate_from_regex(
+  brick_list = brick_list,
+  brick_info = brick_info
+)
 ```
 
 ```{r tests-generate_from_regex}
-test_that("function returns error for unexpected input", {
+test_that("function returns regex with `or` helper", {
+  brick_list <- c("start", "1", "end", "or", "start", "2", "end")
 
+  brick_info <- list(
+    `1` = list(
+      brick = "[[:punct:]hello!]*",
+      type = "unordered",
+      content = c("punctuation", "custom"),
+      occurrence = "anytime",
+      custom_motif = "hello!",
+      custom_occurrence = NULL
+    ),
+    `2` = list(
+      brick = "(what's up \\?)",
+      type = "ordered",
+      content = NULL,
+      occurrence = "once",
+      custom_motif = "what's up ?",
+      custom_occurrence = NULL
+    )
+  )
+
+  n_to_test <- 12
+  res <- generate_from_regex(
+    brick_list = brick_list,
+    brick_info = brick_info,
+    n = n_to_test
+  )
+
+  match_1st <- grepl(pattern = "^[[:punct:]hello!]*$", x = res)
+  match_2nd <- grepl(pattern = "^(what's up \\?)$", x = res)
+
+  expect_true(all(match_1st == !match_2nd))
+  expect_equal(object = sum(match_1st + match_2nd), expect = n_to_test)
+})
+
+test_that("function returns regex without `or` helper", {
+  brick_list <- c("start", "1", "2", "end")
+
+  brick_info <- list(
+    `1` = list(
+      brick = "[[:punct:]hello!]*",
+      type = "unordered",
+      content = c("punctuation", "custom"),
+      occurrence = "anytime",
+      custom_motif = "hello!",
+      custom_occurrence = NULL
+    ),
+    `2` = list(
+      brick = "(what's up \\?)",
+      type = "ordered",
+      content = NULL,
+      occurrence = "once",
+      custom_motif = "what's up ?",
+      custom_occurrence = NULL
+    )
+  )
+
+  n_to_test <- 12
+  res <- generate_from_regex(
+    brick_list = brick_list,
+    brick_info = brick_info,
+    n = n_to_test
+  )
+
+  match_1st <- grepl(pattern = "^[[:punct:]hello!]*", x = res)
+  match_2nd <- grepl(pattern = "(what's up \\?)$", x = res)
+
+  expect_true(all(match_1st == match_2nd))
+  expect_equal(object = sum(match_1st + match_2nd), expect = n_to_test * 2)
 })
 ```
 ```{r development-inflate, eval=FALSE}

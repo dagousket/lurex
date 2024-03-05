@@ -12,52 +12,22 @@
 #'
 #' @noRd
 #' @examples
-#' brick_list <- c("start", "1", "2", "4", "3", "5", "end")
+#' brick_list <- c("start", "1", "end")
 #'
 #' brick_info <- list(
-#' 	`1` = list(
-#' 		brick = "(football)",
-#' 		type = "ordered",
-#' 		content = NULL,
-#' 		occurrence = "once",
-#' 		custom_motif = "football",
-#' 		custom_occurrence = NULL
-#' 	),
-#' 	`2` = list(
-#' 		brick = "[[:blank:]]+",
+#' 	`1` = build_a_regex_brick(
 #' 		type = "unordered",
-#' 		content = "space and tab",
-#' 		occurrence = "at least once",
-#' 		custom_motif = "football",
-#' 		custom_occurrence = NULL
-#' 	),
-#' 	`3` = list(
-#' 		brick = "[[:blank:]]+",
-#' 		type = "unordered",
-#' 		content = "space and tab",
-#' 		occurrence = "at least once",
-#' 		custom_motif = "football",
-#' 		custom_occurrence = NULL
-#' 	),
-#' 	`4` = list(
-#' 		brick = "(is)",
-#' 		type = "ordered",
-#' 		content = NULL,
-#' 		occurrence = "once",
-#' 		custom_motif = "is",
-#' 		custom_occurrence = NULL
-#' 	),
-#' 	`5` = list(
-#' 		brick = "[[:upper:]]{3,5}",
-#' 		type = "unordered",
-#' 		content = "uppercase letters",
+#' 		content = c("digits", "punctuation"),
 #' 		occurrence = "custom",
-#' 		custom_motif = "is",
-#' 		custom_occurrence = c("3", "5")
+#' 		custom_motif = "",
+#' 		custom_occurrence = c("6", "no max")
 #' 	)
 #' )
 #'
-#' generate_from_regex(brick_list = brick_list, brick_info = brick_info)
+#' generate_from_regex(
+#' 	brick_list = brick_list,
+#' 	brick_info = brick_info
+#' )
 generate_from_regex <- function(
 	brick_list,
 	brick_info,
@@ -70,7 +40,7 @@ generate_from_regex <- function(
 		# extract groups
 		or_idx <- which(brick_list == "or")
 		regex_groups <- findInterval(
-			1:length(brick_list),
+			seq_along(brick_list),
 			or_idx
 		)
 		# clean `or` from lists

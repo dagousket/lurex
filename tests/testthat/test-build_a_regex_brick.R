@@ -29,9 +29,9 @@ test_that("function gives expected regex for ordered type", {
 		type = "ordered",
 		occurrence = "custom",
 		custom_motif = "hello",
-		custom_occurrence = c(1, 5)
+		custom_occurrence = c("1", "no max")
 	)
-	expect_equal(object = regex_output$brick, expected = "(hello){1,5}")
+	expect_equal(object = regex_output$brick, expected = "(hello){1,}")
 })
 
 test_that("function gives expected regex for unordered type", {

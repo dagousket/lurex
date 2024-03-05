@@ -62,10 +62,14 @@ generate_from_brick <- function(
 
 	# convert no max if custom range is used
 	if (brick$occurrence == "custom") {
-		brick$custom_occurrence[2] <- sub(
+		up_bound <- sub(
 			"no max",
 			maxfreq,
 			brick$custom_occurrence[2]
+		)
+		brick$custom_occurrence <- c(
+			as.numeric(brick$custom_occurrence[1]),
+			as.numeric(up_bound)
 		)
 	} else {
 		brick$custom_occurrence <- c(0, 0)
@@ -128,8 +132,13 @@ generate_from_brick <- function(
 			if (brick$occurrence == "once") {
 				repeats <- rep(1, extra_word_to_generate)
 			} else if (brick$occurrence != "custom") {
+				start_bound <- ifelse(
+					brick$occurrence == "at least once",
+					1,
+					0
+				)
 				repeats <- sample(
-					maxfreq,
+					start_bound:maxfreq,
 					size = extra_word_to_generate,
 					replace = TRUE
 				)
@@ -138,11 +147,18 @@ generate_from_brick <- function(
 					from = as.numeric(brick$custom_occurrence[1]),
 					to = min(c(maxfreq, as.numeric(brick$custom_occurrence[2])))
 				)
-				repeats <- sample(
-					sample_range,
-					size = extra_word_to_generate,
-					replace = TRUE
-				)
+				if (length(sample_range) == 1) {
+					repeats <- rep(
+						sample_range,
+						extra_word_to_generate
+					)
+				} else {
+					repeats <- sample(
+						sample_range,
+						size = extra_word_to_generate,
+						replace = TRUE
+					)
+				}
 			}
 			invented_match <- map_chr(
 				.x = repeats,

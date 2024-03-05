@@ -64,7 +64,7 @@ build_a_regex_brick <- function(
 	}
 
 	# escape special character
-	if (isTRUE(escape)) {
+	if (!is.null(custom_motif) && isTRUE(escape)) {
 		# escape special
 		unescaped_motif <- custom_motif
 		custom_motif <- str_escape(custom_motif)
@@ -84,8 +84,11 @@ build_a_regex_brick <- function(
 		custom_occurrence <- NULL
 		freq <- occurrence_equivalence[occurrence]
 	} else {
-		custom_occurrence[2] <- sub("no max", "", custom_occurrence[2])
-		freq <- sprintf("{%s,%s}", custom_occurrence[1], custom_occurrence[2])
+		freq <- sprintf(
+			"{%s,%s}",
+			custom_occurrence[1],
+			sub("no max", "", custom_occurrence[2])
+		)
 	}
 
 	# set group

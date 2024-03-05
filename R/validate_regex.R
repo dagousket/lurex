@@ -3,8 +3,7 @@
 #' Validate a regex combination
 #'
 #' @param bricks character. The ordered list of regex bricks
-#'
-#' @importFrom shinyWidgets show_toast
+#' @param use_toast logical. Should a UI toast be shown for incorrect regex.
 #'
 #' @return logical. Side effect : trigger a toast widget
 #' @export
@@ -13,7 +12,10 @@
 #' validate_regex(
 #' 	bricks = list("1", "end", "or", "2", "end", "or", "3", "4", "end")
 #' )
-validate_regex <- function(bricks) {
+validate_regex <- function(
+	bricks,
+	use_toast = TRUE
+				) {
 	# get idx
 	or_idx <- which(bricks == "or")
 	start_idx <- which(bricks == "start")
@@ -26,12 +28,9 @@ validate_regex <- function(bricks) {
 	if ("start" %in% bricks) {
 		# start can be found as 1st element or after a "or"
 		if (!all(start_idx %in% c(1, or_idx + 1))) {
-			show_toast(
-				title = "woups",
+			make_a_toast(
 				text = "start `^` should be the first element",
-				type = "warning",
-				timer = 3000,
-				width = "400px"
+				use_toast = use_toast
 			)
 			return(FALSE)
 		}
@@ -39,12 +38,9 @@ validate_regex <- function(bricks) {
 
 	if ("end" %in% bricks) {
 		if (!all(end_idx %in% c(length(bricks), or_idx - 1))) {
-			show_toast(
-				title = "woups",
+			make_a_toast(
 				text = "end `$` should be the last element",
-				type = "warning",
-				timer = 3000,
-				width = "400px"
+				use_toast = use_toast
 			)
 			return(FALSE)
 		}
@@ -55,12 +51,9 @@ validate_regex <- function(bricks) {
 
 		if (is_first_or_last) {
 			# cannot be first or last
-			show_toast(
-				title = "woups",
+			make_a_toast(
 				text = "or `|` should not be 1st or last element",
-				type = "warning",
-				timer = 3000,
-				width = "400px"
+				use_toast = use_toast
 			)
 			return(FALSE)
 		}
@@ -68,20 +61,60 @@ validate_regex <- function(bricks) {
 		right_idx <- or_idx + 1[or_idx != length(bricks)]
 		left_idx <- or_idx - 1[or_idx != 1]
 
-		is_next_to_helper <- any(
+		is_next_to_or <- any(
 			c("or") %in% bricks[c(left_idx, right_idx)]
 		)
+		is_right_to_start <- any(
+			"start" %in% bricks[left_idx]
+		)
+		is_left_to_end <- any(
+			"end" %in% bricks[right_idx]
+		)
 
-		if (is_next_to_helper) {
-			show_toast(
-				title = "woups",
+		if (is_next_to_or) {
+			make_a_toast(
 				text = "or `|` should not be next to another `|`",
-				type = "warning",
-				timer = 3000,
-				width = "400px"
+				use_toast = use_toast
+			)
+			return(FALSE)
+		}
+
+		if (is_right_to_start) {
+			make_a_toast(
+				text = "or `|` should not be directly after start `^`",
+				use_toast = use_toast
+			)
+			return(FALSE)
+		}
+
+		if (is_left_to_end) {
+			make_a_toast(
+				text = "or `|` should not be directly before end `$`",
+				use_toast = use_toast
 			)
 			return(FALSE)
 		}
 	}
 	return(TRUE)
+}
+
+#' make a toast
+#'
+#' @param text character. The text to sho
+#' @inheritParams validate_regex use_toast
+#'
+#' @importFrom shinyWidgets show_toast
+#'
+#' @noRd
+make_a_toast <- function(text, use_toast) {
+	if (isTRUE(use_toast)) {
+		show_toast(
+			title = "woups",
+			text = text,
+			type = "warning",
+			timer = 3000,
+			width = "400px",
+			position = "top-end"
+		)
+	}
 }
