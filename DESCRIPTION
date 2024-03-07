@@ -1,11 +1,11 @@
 Package: lurex
 Title: Learn to Use Regular EXpression
 Version: 0.0.1
-Authors@R: 
+Authors@R:
     person("Swann", "Floc'hlay", , "swann@thinkr.fr", role = c("cre", "aut"))
 Description: A simple app to help build simple regex.
 License: MIT + file LICENSE
-Depends: 
+Depends:
     R (>= 2.10)
 Imports:
     bsicons,
@@ -20,6 +20,7 @@ Imports:
     stats,
     stringr
 Suggests:
+    pkgload,
     spelling,
     testthat (>= 3.0.0)
 Config/fusen/version: 0.6.0

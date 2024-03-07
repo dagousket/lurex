@@ -23,29 +23,29 @@ Generate a word from a regex brick
 }
 \examples{
 brick <- build_a_regex_brick(
-  type = "ordered",
-  occurrence = "custom",
-  custom_motif = "heyho",
-  content = NULL,
-  custom_occurrence = c(5, 10)
+	type = "ordered",
+	occurrence = "custom",
+	custom_motif = "heyho",
+	content = NULL,
+	custom_occurrence = c(5, 10)
 )
 
 generate_from_brick(brick)
 
 brick <- build_a_regex_brick(
-  type = "unordered",
-  occurrence = "at least once",
-  custom_motif = "write your motif here",
-  content = c("digit")
+	type = "unordered",
+	occurrence = "at least once",
+	custom_motif = "write your motif here",
+	content = c("digit")
 )
 
 generate_from_brick(brick)
 
 brick <- build_a_regex_brick(
-  type = "unordered",
-  occurrence = "anytime",
-  custom_motif = "WonDERFul",
-  content = c("custom")
+	type = "unordered",
+	occurrence = "anytime",
+	custom_motif = "WonDERFul",
+	content = c("custom")
 )
 
 generate_from_brick(brick)
