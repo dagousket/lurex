@@ -106,7 +106,7 @@ generate_from_brick <- function(
 			) %in% brick$content
 		)
 		if (use_scrabble && some_letters_in_regex) {
-			scrabble_match <- search_in_scrabble(brick)
+			scrabble_match <- search_in_scrabble_mem(brick)
 		} else {
 			scrabble_match <- c()
 		}

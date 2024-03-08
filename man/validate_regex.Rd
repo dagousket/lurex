@@ -12,13 +12,13 @@ validate_regex(bricks, use_toast = TRUE)
 \item{use_toast}{logical. Should a UI toast be shown for incorrect regex.}
 }
 \value{
-logical. Side effect : trigger a toast widget
+list. logical indicating validity, character indicating reasons
 }
 \description{
 Validate a regex combination
 }
 \examples{
 validate_regex(
-	bricks = list("1", "end", "or", "2", "end", "or", "3", "4", "end")
+  bricks = list("1", "end", "or", "2", "end", "or", "3", "4", "end")
 )
 }

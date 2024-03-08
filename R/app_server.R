@@ -9,7 +9,10 @@ app_server <- function(input, output, session) {
 
 	# the flying regex list
 	r <- reactiveValues(
-		regex_list = list()
+		regex_list = list(),
+		is_regex_valid = NULL,
+		regex_combined = NULL,
+		regex_match = NULL
 	)
 
 	mod_regex_brick_server("regex_brick_1", r = r)

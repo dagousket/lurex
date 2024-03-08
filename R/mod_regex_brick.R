@@ -201,7 +201,6 @@ mod_regex_brick_server <- function(id, r) {
 					timer = 3000,
 					width = "400px"
 				)
-				Sys.sleep(1)
 			}
 		)
 	})

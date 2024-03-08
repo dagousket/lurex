@@ -5,7 +5,7 @@
 #' @param bricks character. The ordered list of regex bricks
 #' @param use_toast logical. Should a UI toast be shown for incorrect regex.
 #'
-#' @return logical. Side effect : trigger a toast widget
+#' @return list. logical indicating validity, character indicating reasons
 #' @export
 #'
 #' @examples
@@ -21,28 +21,27 @@ validate_regex <- function(
 	start_idx <- which(bricks == "start")
 	end_idx <- which(bricks == "end")
 
+	valid <- TRUE
+	text <- ""
+
 	if (all(bricks %in% c("start", "end", "stop"))) {
-		return(FALSE)
+		valid <- FALSE
+		text <- "no brick in regex"
+		use_toast <- FALSE
 	}
 
 	if ("start" %in% bricks) {
 		# start can be found as 1st element or after a "or"
 		if (!all(start_idx %in% c(1, or_idx + 1))) {
-			make_a_toast(
-				text = "start `^` should be the first element",
-				use_toast = use_toast
-			)
-			return(FALSE)
+			valid <- FALSE
+			text <- "start `^` should be the first element"
 		}
 	}
 
 	if ("end" %in% bricks) {
 		if (!all(end_idx %in% c(length(bricks), or_idx - 1))) {
-			make_a_toast(
-				text = "end `$` should be the last element",
-				use_toast = use_toast
-			)
-			return(FALSE)
+			valid <- FALSE
+			text <- "end `$` should be the last element"
 		}
 	}
 
@@ -51,11 +50,8 @@ validate_regex <- function(
 
 		if (is_first_or_last) {
 			# cannot be first or last
-			make_a_toast(
-				text = "or `|` should not be 1st or last element",
-				use_toast = use_toast
-			)
-			return(FALSE)
+			valid <- FALSE
+			text <- "or `|` should not be 1st or last element"
 		}
 
 		right_idx <- or_idx + 1[or_idx != length(bricks)]
@@ -72,30 +68,28 @@ validate_regex <- function(
 		)
 
 		if (is_next_to_or) {
-			make_a_toast(
-				text = "or `|` should not be next to another `|`",
-				use_toast = use_toast
-			)
-			return(FALSE)
+			text <- "or `|` should not be next to another `|`"
+			valid <- FALSE
 		}
 
 		if (is_right_to_start) {
-			make_a_toast(
-				text = "or `|` should not be directly after start `^`",
-				use_toast = use_toast
-			)
-			return(FALSE)
+			text <- "or `|` should not be directly after start `^`"
+			valid <- FALSE
 		}
 
 		if (is_left_to_end) {
-			make_a_toast(
-				text = "or `|` should not be directly before end `$`",
-				use_toast = use_toast
-			)
-			return(FALSE)
+			text <- "or `|` should not be directly before end `$`"
+			valid <- FALSE
 		}
 	}
-	return(TRUE)
+	if (isFALSE(valid)) {
+		make_a_toast(
+			text = text,
+			use_toast = use_toast
+		)
+	}
+
+	return(list(valid, text))
 }
 
 #' make a toast

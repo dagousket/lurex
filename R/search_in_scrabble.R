@@ -17,6 +17,13 @@
 #' 		type = "unordered"
 #' 	)
 #' )
+#'
+#' search_in_scrabble_mem(
+#' 	list(
+#' 		brick = "[zulu]{4,4}",
+#' 		type = "unordered"
+#' 	)
+#' )
 search_in_scrabble <- function(
 	brick) {
 	if (brick$type != "unordered") {
@@ -71,3 +78,12 @@ search_in_scrabble <- function(
 
 	return(unique(all_matches))
 }
+
+#' Search a word from Scrabble with regex with cache
+#'
+#' @inheritParams search_in_scrabble
+#'
+#' @importFrom memoise memoise
+#'
+#' @noRd
+search_in_scrabble_mem <- memoise(search_in_scrabble)

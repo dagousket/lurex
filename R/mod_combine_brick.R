@@ -26,7 +26,7 @@ mod_combine_brick_ui <- function(id) {
 					icon = icon("trash")
 				)
 			),
-			col_8(
+			col_4(
 				span(
 					"helpers",
 					tooltip(
@@ -36,6 +36,11 @@ mod_combine_brick_ui <- function(id) {
 					)
 				),
 				uiOutput(ns("sortable_3"))
+			),
+			col_4(
+				p("status"),
+				uiOutput(outputId = ns("regex_status")),
+				textOutput(ns("regex_reason"))
 			)
 		)
 	)
@@ -85,9 +90,32 @@ mod_combine_brick_server <- function(id, r) {
 
 		observeEvent(input$ranked_bricks, {
 			# check validity of the regex
-			r$is_regex_valid <- validate_regex(input$ranked_bricks)
+			regex_eval <- validate_regex(input$ranked_bricks)
+			r$is_regex_valid <- regex_eval[[1]]
 			# save regex
 			r$regex_combined <- input$ranked_bricks
+			# clean up invented list
+			r$regex_match <- NULL
+
+			if (isTRUE(regex_eval[[1]])) {
+				eval_status <- "valid"
+				eval_icon <- "check2-circle"
+				eval_style <- "color:green"
+			} else {
+				eval_status <- "invalid"
+				eval_icon <- "bug"
+				eval_style <- "color:red"
+			}
+
+			output$regex_status <- renderUI({
+				span(
+					eval_status,
+					bs_icon(eval_icon),
+					style = eval_style
+				)
+			})
+
+			output$regex_reason <- renderText(regex_eval[[2]])
 		})
 
 		# the bin bucket

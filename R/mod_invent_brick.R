@@ -12,7 +12,7 @@ mod_invent_brick_ui <- function(id) {
 	tagList(
 		h3("Fetch some matches"),
 		p(),
-		verbatimTextOutput(outputId = ns("regex")),
+		strong(verbatimTextOutput(outputId = ns("regex"))),
 		p(),
 		verbatimTextOutput(outputId = ns("match")),
 		p(),
@@ -62,26 +62,35 @@ mod_invent_brick_server <- function(id, r) {
 			)
 			combined_regex <- paste(combined_regex, collapse = "")
 			output$regex <- renderText(combined_regex)
+
+			# clean up invented list
+			r$regex_match <- NULL
 		})
 
 
-		observeEvent(input$fetch_match, {
-			validate(
-				need(r$is_regex_valid, "Your regex is not valid yet")
-			)
-			r$regex_match <- paste(
-				generate_from_regex(
-					brick_list = r$regex_combined,
-					brick_info = r$regex_list,
-					use_scrabble = input$search_scrabble
-				),
-				collapse = "\n"
-			)
-		})
+		observeEvent(
+			input$fetch_match,
+			{
+				if (!is.null(r$is_regex_valid) && r$is_regex_valid) {
+					r$regex_match <- paste(
+						generate_from_regex(
+							brick_list = r$regex_combined,
+							brick_info = r$regex_list,
+							use_scrabble = input$search_scrabble
+						),
+						collapse = "\n"
+					)
+				}
 
-		output$match <- renderText({
-			r$regex_match
-		})
+				output$match <- renderText({
+					validate(
+						need(r$is_regex_valid, "Your regex is not valid yet")
+					)
+					r$regex_match
+				})
+			},
+			ignoreInit = TRUE
+		)
 	})
 }
 

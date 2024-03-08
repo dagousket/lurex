@@ -13,6 +13,7 @@ Imports:
     config (>= 0.3.2),
     golem (>= 0.4.1),
     htmltools,
+    memoise,
     purrr,
     shiny (>= 1.8.0),
     shinyWidgets,

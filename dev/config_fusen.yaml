@@ -38,6 +38,7 @@ keep:
   path: keep
   state: active
   R:
+  - R/_disable_autoload.R
   - R/doc_wordlist.R
   - R/app_config.R
   - R/app_server.R
