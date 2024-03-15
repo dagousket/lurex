@@ -29,11 +29,8 @@ test_that("function returns regex with `or` helper", {
 		n = n_to_test
 	)
 
-	match_1st <- grepl(pattern = "^[[:punct:]hello!]*$", x = res)
-	match_2nd <- grepl(pattern = "^(what's up \\?)$", x = res)
-
-	expect_true(all(match_1st == !match_2nd))
-	expect_equal(object = sum(match_1st + match_2nd), expect = n_to_test)
+	expect_type(object = res, type = "list")
+	expect_s3_class(object = res[[1]], class = "shiny.tag")
 })
 
 test_that("function returns regex without `or` helper", {
@@ -65,9 +62,6 @@ test_that("function returns regex without `or` helper", {
 		n = n_to_test
 	)
 
-	match_1st <- grepl(pattern = "^[[:punct:]hello!]*", x = res)
-	match_2nd <- grepl(pattern = "(what's up \\?)$", x = res)
-
-	expect_true(all(match_1st == match_2nd))
-	expect_equal(object = sum(match_1st + match_2nd), expect = n_to_test * 2)
+	expect_type(object = res, type = "list")
+	expect_s3_class(object = res[[1]], class = "shiny.tag")
 })

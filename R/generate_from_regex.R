@@ -8,6 +8,8 @@
 #' This will be aded if no start/end helper is detected.
 #' @param use_scrabble logical. Should we first look for match in scrabble.
 #'
+#' @importFrom shiny tagList
+#'
 #' @return matchlist. A character string matching the regex.
 #'
 #' @noRd
@@ -92,22 +94,116 @@ generate_from_regex <- function(
 			}
 		)
 
+		# col idx ?
+		# how much brick before, except and/or/start
+		col_idx <- min(which(regex_groups == id))
+		if (col_idx > 1) {
+			helper_before_idx <- sum(
+				brick_list[1:col_idx - 1] %in% c("start", "end", "or")
+			)
+			col_idx <- col_idx - helper_before_idx
+		}
+
+
 		# bind them into final list of matches
-		list_of_n_in_group <- map_chr(
-			.x = 1:n_in_group,
-			.f = \(x){
-				paste0(
-					c(
-						char_before[x],
-						map_vec(char_inside, x),
-						char_after[x]
-					),
-					collapse = ""
-				)
-			}
+		list_of_n_in_group <- color_style_regex(
+			char_inside = char_inside,
+			char_before = char_before,
+			char_after = char_after,
+			col_idx = col_idx
 		)
 
 		list_of_n <- c(list_of_n, list_of_n_in_group)
 	}
 	return(sample(list_of_n))
+}
+
+#' Style regex with colors
+#'
+#' @param char_inside character. A vector of regex match
+#' if it contains helpers, helpers will be color in black
+#' @param char_before character. A vector of random character before regex
+#' @param char_after character. A vector of random character after regex
+#' @param col_idx integer. A index to start the color vector from
+#' @param is_regex logical. Take into account regex characters as black
+#'
+#' @importFrom purrr map_dbl map map_vec
+#' @importFrom shiny tagList span
+#'
+#' @noRd
+color_style_regex <- function(
+	char_inside,
+	char_before = NULL,
+	char_after = NULL,
+	col_idx = 1,
+	is_regex = FALSE
+				) {
+	# check if regex is empty
+	if (length(char_inside) == 0) {
+		return(span(""))
+	}
+
+	# check size of vector
+	if (is_regex) {
+		vec_size <- 1
+	} else {
+		vec_size <- unique(map_dbl(char_inside, length))
+	}
+
+	# initialise palette
+	color_pal_size <- length(char_inside)
+	col_pal <- rep(lurex::color_pal, length.out = col_idx + color_pal_size)
+	col_pal <- col_pal[col_idx:(col_idx + color_pal_size)]
+
+	# style inner character (regex) with pkg color palette
+	char_inside_with_style <- map(1:vec_size, .f = \(x) {
+		# parse content (in multiple piece if match)
+		if (!is_regex) {
+			content <- map_vec(char_inside, x)
+		} else {
+			content <- char_inside
+		}
+
+		# apply color to each element, skip helper with black color
+		nb_helper <- 0
+		content_style <- list()
+		for (idx in seq_along(content)) {
+			if (is_regex && content[idx] %in% c("^", "|", "$")) {
+				col_style <- "color:black"
+				nb_helper <- nb_helper + 1
+			} else {
+				col_style <- paste0("color:", col_pal[idx - nb_helper])
+			}
+			content_style[[idx]] <- span(
+				content[idx],
+				style = col_style,
+				.noWS = "outside"
+			)
+		}
+		return(content_style)
+	})
+
+	# add grey boundary if provided
+	if (!is_regex) {
+		vec_boundary_size <- unique(length(char_before), length(char_after))
+
+		if (length(vec_size) != 1 || vec_size != vec_boundary_size) {
+			stop("The provided character vectors do not have the same length")
+		}
+
+		# bind them into final list of matches with grey extra boundaries
+		list_of_n_in_group <- map(
+			.x = 1:vec_size,
+			.f = \(x) {
+				p(
+					span(char_before[x], style = "color:lightgrey", .noWS = "outside"),
+					char_inside_with_style[[x]],
+					span(char_after[x], style = "color:lightgrey", .noWS = "outside")
+				)
+			}
+		)
+		return(list_of_n_in_group)
+	} else {
+		return(tagList(char_inside_with_style[[1]]))
+	}
 }
