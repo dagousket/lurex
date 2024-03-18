@@ -24,14 +24,24 @@ test_that("function returns error for unexpected input", {
 	)
 })
 
-test_that("function gives expected regex for ordered type", {
+test_that("function gives expected regex for ordered type with escape", {
 	regex_output <- build_a_regex_brick(
 		type = "ordered",
 		occurrence = "custom",
-		custom_motif = "hello",
+		custom_motif = "hello?",
 		custom_occurrence = c("1", "no max")
 	)
-	expect_equal(object = regex_output$brick, expected = "(hello){1,}")
+	expect_equal(object = regex_output$brick, expected = "(hello\\?){1,}")
+})
+
+test_that("function gives expected regex with no escape", {
+	regex_output <- build_a_regex_brick(
+		type = "ordered",
+		occurrence = "anytime",
+		custom_motif = "hello?",
+		escape = FALSE
+	)
+	expect_equal(object = regex_output$brick, expected = "(hello?)*")
 })
 
 test_that("function gives expected regex for unordered type", {

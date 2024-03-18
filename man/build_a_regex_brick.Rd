@@ -44,7 +44,8 @@ build_a_regex_brick(
   type = "ordered",
   occurrence = "custom",
   custom_motif = "hello$",
-  custom_occurrence = c(1, 5)
+  custom_occurrence = c(1, 5),
+  escape = FALSE
 )
 
 build_a_regex_brick(

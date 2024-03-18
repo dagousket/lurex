@@ -25,7 +25,8 @@
 #' 	type = "ordered",
 #' 	occurrence = "custom",
 #' 	custom_motif = "hello$",
-#' 	custom_occurrence = c(1, 5)
+#' 	custom_occurrence = c(1, 5),
+#' 	escape = FALSE
 #' )
 #'
 #' build_a_regex_brick(
@@ -64,9 +65,9 @@ build_a_regex_brick <- function(
 	}
 
 	# escape special character
+	unescaped_motif <- custom_motif
 	if (!is.null(custom_motif) && isTRUE(escape)) {
 		# escape special
-		unescaped_motif <- custom_motif
 		custom_motif <- str_escape(custom_motif)
 		# avoid creating range in unordered input with `-`
 		if (type == "unordered" && grepl("-", custom_motif)) {
