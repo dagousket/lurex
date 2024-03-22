@@ -41,17 +41,17 @@ Build a regex brick
 }
 \examples{
 build_a_regex_brick(
-  type = "ordered",
-  occurrence = "custom",
-  custom_motif = "hello$",
-  custom_occurrence = c(1, 5),
-  escape = FALSE
+	type = "ordered",
+	occurrence = "custom",
+	custom_motif = "hello$",
+	custom_occurrence = c(1, 5),
+	escape = FALSE
 )
 
 build_a_regex_brick(
-  type = "unordered",
-  occurrence = "anytime",
-  custom_motif = "hello!",
-  content = c("punctuation", "custom")
+	type = "unordered",
+	occurrence = "anytime",
+	custom_motif = "hello!",
+	content = c("punctuation", "custom")
 )
 }

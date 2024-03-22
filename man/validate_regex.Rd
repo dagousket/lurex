@@ -19,6 +19,6 @@ Validate a regex combination
 }
 \examples{
 validate_regex(
-  bricks = list("1", "end", "or", "2", "end", "or", "3", "4", "end")
+	bricks = list("1", "end", "or", "2", "end", "or", "3", "4", "end")
 )
 }

@@ -49,7 +49,7 @@ gitlabr::use_gitlab_ci(type = "check-coverage-pkgdown")
 pkgload::load_all()
 
 # Generate documentation and deal with dependencies
-attachment::att_amend_desc()
+attachment::att_amend_desc(update.config = TRUE, extra.suggests = "pkgload")
 
 # Check the package
 devtools::check()
