@@ -18,7 +18,8 @@ mod_combine_brick_ui <- function(id) {
     uiOutput(ns("sortable_1")),
     fluidRow(
       col_4(
-        p("bin"),
+        align = "center",
+        span("bin"),
         uiOutput(ns("sortable_2")),
         actionButton(
           inputId = ns("clear_bin"),
@@ -27,20 +28,32 @@ mod_combine_brick_ui <- function(id) {
         )
       ),
       col_4(
+        align = "center",
         span(
           "helpers",
           tooltip(
             bs_icon("info-circle"),
-            "hover on tile to see definition",
+            HTML(
+              paste(
+                "$ : end of string",
+                "^ : start of string",
+                "| : match left or right pattern",
+                sep = "<br>"
+              )
+            ),
             placement = "bottom"
           )
         ),
         uiOutput(ns("sortable_3"))
       ),
       col_4(
-        p("status"),
-        uiOutput(outputId = ns("regex_status")),
-        textOutput(ns("regex_reason"))
+        align = "center",
+        span("status"),
+        div(
+          style = "margin-top:30px;",
+          uiOutput(outputId = ns("regex_status")),
+          textOutput(ns("regex_reason"))
+        )
       )
     )
   )
@@ -150,21 +163,21 @@ mod_combine_brick_server <- function(id, r) {
           "or" = tags$div(
             tooltip(
               "|",
-              "or : match the motif on the left or the motif on the right",
+              "match left or right pattern",
               placement = "bottom"
             )
           ),
           "start" = tags$div(
             tooltip(
               "^",
-              "start : no text before this",
+              "start of string",
               placement = "bottom"
             )
           ),
           "end" = tags$div(
             tooltip(
               "$",
-              "stop : no text after this",
+              "end of string",
               placement = "bottom"
             )
           )
