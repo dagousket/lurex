@@ -1,4 +1,3 @@
-
 test_that("function returns TRUE for correct regex", {
   expect_true({
     validate_regex(bricks = list("yes", "or", "no"))[[1]]

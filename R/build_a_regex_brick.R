@@ -1,4 +1,3 @@
-
 #' Build a regex brick
 #'
 #' @param type character. The type of regex group.

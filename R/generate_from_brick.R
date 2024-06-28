@@ -1,4 +1,3 @@
-
 #' Generate a word from a regex brick
 #'
 #' @param brick list. A list of the regex specifics

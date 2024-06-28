@@ -1,4 +1,3 @@
-
 test_that("function returns error for unexpected input", {
   expect_error(
     {

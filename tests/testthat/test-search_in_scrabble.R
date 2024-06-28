@@ -1,4 +1,3 @@
-
 test_that("function returns error for unexpected input", {
   expect_error(
     search_in_scrabble(list("type" = "incorrect")),

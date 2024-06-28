@@ -1,4 +1,3 @@
-
 #' List possible matches for a regex composed of multiple bricks
 #'
 #' @param brick_list list. A list of bricks.

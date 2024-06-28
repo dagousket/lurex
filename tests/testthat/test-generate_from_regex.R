@@ -1,4 +1,3 @@
-
 test_that("function returns regex with `or` helper", {
   brick_list <- c("start", "1", "end", "or", "start", "2", "end")
 

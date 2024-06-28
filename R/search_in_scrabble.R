@@ -1,4 +1,3 @@
-
 #' Search a word from Scrabble with regex
 #'
 #' @param brick list. A list of the regex specifics, works for unordered regex.

@@ -1,4 +1,3 @@
-
 #' Validate a regex combination
 #'
 #' @param bricks character. The ordered list of regex bricks
