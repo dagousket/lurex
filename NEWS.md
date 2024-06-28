@@ -1,3 +1,7 @@
+# lurex 0.0.3
+
+* Remove fusen structure
+
 # lurex 0.0.2
 
 * Added color code to regex
