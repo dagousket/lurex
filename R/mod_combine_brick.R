@@ -170,10 +170,6 @@ mod_combine_brick_server <- function(id, r) {
           )
         )
 
-        # If you want only once start and end
-        # unused <- c("start", "end")[!c("start", "end") %in% input$ranked_bricks]
-        # bricks_list <- bricks_list[c(unused, "or")]
-
         output$sortable_3 <- renderUI({
           bucket_list(
             header = NULL,
