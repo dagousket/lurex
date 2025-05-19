@@ -7,6 +7,7 @@
 
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![R-CMD-check](https://github.com/dagousket/lurex/actions/workflows/check-format-deploy.yaml/badge.svg)](https://github.com/dagousket/lurex/actions/workflows/check-format-deploy.yaml)
 <!-- badges: end -->
 
 The goal of lurex is to help you learning to use regex. You can find it
