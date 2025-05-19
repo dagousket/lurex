@@ -1,6 +1,6 @@
 # Simple workflow for deploying to GitHub Pages with shinylive
 # Build from https://github.com/ThinkR-open/golem-shinylive
-name: Check package, Format with  Air and Deploy shinylive content to gh-pages
+name: Check package and deploy shinylive content to gh-pages
 
 on:
   # Trigger on push to `main` branch
@@ -49,32 +49,6 @@ jobs:
         with:
           upload-snapshots: true
           build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
-
-  format-check:
-    name: format-check
-    needs: R-CMD-check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install
-        uses: posit-dev/setup-air@v1
-
-      - name: Check
-        run: air format .
-
-      - name: Commit changes
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
-          git diff --cached --quiet || git commit -m "style: auto-format code via air format"
-
-      - name: Push changes
-        if: github.event_name == 'pull_request' && github.head_ref != ''
-        run: |
-          git pull --rebase origin ${{ github.head_ref }}
-          git push origin HEAD:${{ github.head_ref }}
 
   deploy:
     needs: R-CMD-check

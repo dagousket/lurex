@@ -52,7 +52,7 @@ mod_invent_brick_server <- function(id, r) {
 
       combined_regex <- map_chr(
         .x = r$regex_combined,
-        .f = \(x){
+        .f = \(x) {
           if (x %in% names(r$regex_list)) {
             r$regex_list[[x]][["brick"]]
           } else {
@@ -70,7 +70,6 @@ mod_invent_brick_server <- function(id, r) {
       # clean up invented list
       r$regex_match <- NULL
     })
-
 
     observeEvent(
       input$fetch_match,

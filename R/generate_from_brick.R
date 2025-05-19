@@ -83,7 +83,7 @@ generate_from_brick <- function(
     )
     motif_reps <- occurrence_equivalence[[brick$occurrence]]
 
-    invented_match <- map_chr(motif_reps, \(x){
+    invented_match <- map_chr(motif_reps, \(x) {
       paste(rep(brick$custom_motif, x), collapse = "")
     })
 
@@ -101,7 +101,8 @@ generate_from_brick <- function(
         "lowercase letters",
         "uppercase letters",
         "custom"
-      ) %in% brick$content
+      ) %in%
+        brick$content
     )
     if (use_scrabble && some_letters_in_regex) {
       scrabble_match <- search_in_scrabble_mem(brick)
