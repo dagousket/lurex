@@ -39,17 +39,18 @@ search_in_scrabble <- function(brick) {
     c(
       "lowercase letters",
       "uppercase letters"
-    ) %in% brick$content
+    ) %in%
+      brick$content
   )
 
   if ("custom" %in% brick$content || universal_case) {
     # list which letter is found as upper or lower case
     if (universal_case) {
-      letters_bucket <- map(.x = letters, .f = \(x){
+      letters_bucket <- map(.x = letters, .f = \(x) {
         c(x, toupper(x))
       })
     } else {
-      letters_bucket <- map_vec(.x = letters, .f = \(x){
+      letters_bucket <- map_vec(.x = letters, .f = \(x) {
         unique(
           str_extract_all(
             string = brick$custom_motif,
@@ -61,9 +62,9 @@ search_in_scrabble <- function(brick) {
     names(letters_bucket) <- letters
 
     # scan wordlist match and pick correct case
-    mixed_case_match <- map_chr(.x = all_matches, .f = \(word){
+    mixed_case_match <- map_chr(.x = all_matches, .f = \(word) {
       paste(
-        map(.x = strsplit(word, split = "")[[1]], \(word_letter){
+        map(.x = strsplit(word, split = "")[[1]], \(word_letter) {
           sample(letters_bucket[[tolower(word_letter)]], 1)
         }),
         collapse = ""

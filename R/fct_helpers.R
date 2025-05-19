@@ -7,7 +7,8 @@ one_nav <- function(
     '<li class="nav-item"><a class="nav-link js-scroll-trigger" href="#%s">%s</a></li>',
     id,
     text
-  ) |> HTML()
+  ) |>
+    HTML()
 }
 
 one_section <- function(

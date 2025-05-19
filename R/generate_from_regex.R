@@ -102,7 +102,6 @@ generate_from_regex <- function(
       col_idx <- col_idx - helper_before_idx
     }
 
-
     # bind them into final list of matches
     list_of_n_in_group <- color_style_regex(
       char_inside = char_inside,

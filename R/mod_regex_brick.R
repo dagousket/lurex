@@ -179,7 +179,6 @@ mod_regex_brick_server <- function(id, r) {
       }
     )
 
-
     # making a brick
     observeEvent(
       input$make_brick,
