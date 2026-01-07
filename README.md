@@ -11,7 +11,8 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 <!-- badges: end -->
 
 The goal of lurex is to help you learning to use regex. You can find it
-on [Posit Connect](https://connect.thinkr.fr/lurex/).
+on [this github hosted page](
+dagousket.github.io/lurex/ ).
 
 ## get started
 
